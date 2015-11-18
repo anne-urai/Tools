@@ -1,0 +1,40 @@
+function [data, event] = asc2dat(asc)
+% takes asc data from EyeLink file and converts this into events and
+% fieldtrip data structure
+
+% create event structure for messages
+evcell = cell(length(asc.msg),1);
+event = struct('type', evcell, 'sample', evcell, 'value', evcell, 'offset', evcell, 'duration', evcell );
+
+for i=1:length(asc.msg),
+    
+    strtok = tokenize(asc.msg{i});
+    event(i).type = strtok{3};
+    str2double(strtok{2});
+    
+    % match the message to its sample
+    smpstamp = dsearchn(asc.dat(1,:)', str2double(strtok{2}));
+    % find closest sample index of trigger in ascii dat
+    
+    if ~isempty(smpstamp)
+        event(i).sample = smpstamp(1);
+    else % if no exact sample was found
+        warning('no sample found');
+    end
+    event(i).value = asc.msg{i};
+end
+
+% make data struct
+% important: match the right data chans to their corresponding labels...
+data                = [];
+data.label          = {'EyeH'; 'EyeV'; 'EyePupil'};
+data.trial          = {asc.dat(2:4, :)};  %% !!!!!!!!! %% only take 3
+data.fsample        = asc.fsample;
+data.time           = {0:1/data.fsample:length(asc.dat(1,:))/data.fsample-1/data.fsample};
+data.sampleinfo     = [1 length(asc.dat(1,:))];
+
+if data.fsample ~= 1000,
+    warning('pupil not sampled with 1000Hz');
+end
+
+end
