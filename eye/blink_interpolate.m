@@ -40,6 +40,9 @@ padding       = 0.100; % how long before and after do we want to pad?
 padblinksmp(:,1) = round(blinksmp(:,1) - padding * data.fsample);
 padblinksmp(:,2) = round(blinksmp(:,2) + padding * data.fsample);
 
+% avoid negative idx
+if padblinksmp(1,1) < 0, padblinksmp(1,1) = 1; end
+
 % make the pupil NaN at those points
 for b = 1:size(padblinksmp,1),
     dat.pupil(padblinksmp(b,1):padblinksmp(b,2)) = NaN;
@@ -61,7 +64,7 @@ dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
 if plotme, sp2 = subplot(512); hold on;
     % show how well this worked
     plot(dat.time, dat.pupil);
-    axis tight; box off; ylabel('EyeLink interpolated');
+    axis tight; box off; ylabel('Interp');
     set(gca, 'xtick', []);
 end
 
@@ -69,12 +72,15 @@ end
 % STEP 2: INTERPOLATE PEAK-DETECTED BLINKS
 % ====================================================== %
 
-dat.pupildiff = diff(dat.pupil) - mean(diff(dat.pupil)) / std(diff(dat.pupil));
-[peaks, loc] = findpeaks(dat.pupildiff, 'minpeakheight', 50, 'minpeakdistance', 0.5*data.fsample);
+win             = hanning(11);
+pupildatsmooth  = filter2(win.',dat.pupil,'same');
+
+dat.pupildiff = diff(pupildatsmooth) - mean(diff(pupildatsmooth)) / std(diff(pupildatsmooth));
+[peaks, loc] = findpeaks(dat.pupildiff, 'minpeakheight', 3*std(dat.pupildiff), 'minpeakdistance', 0.5*data.fsample);
 
 if plotme, sp3 = subplot(513);
-    plot(dat.time(2:end), dat.pupildiff); hold on;
-    stem(loc, peaks);
+    plot(dat.time(2:end), dat.pupildiff); 
+    hold on; plot(dat.time(loc), peaks, 'o');
     axis tight; box off; ylabel('Peak detect');
     set(gca, 'xtick', []);
 end
@@ -82,7 +88,7 @@ end
 % convert peaks into blinksmp
 newblinksmp = nan(length(peaks), 2);
 for p = 1:length(peaks),
-    newblinksmp(p, 1) = loc(p) - padding * data.fsample;
+    newblinksmp(p, 1) = loc(p) - 2*padding * data.fsample; % peak detected will be eye-opening again
     newblinksmp(p, 2) = loc(p) + padding * data.fsample;
 end
 
@@ -111,6 +117,8 @@ newpupil = dat.pupil;
 % link axes
 if plotme, 
     linkaxes([sp1 sp2 sp3 sp4], 'x'); 
+    set([sp1 sp2 sp3 sp4], 'tickdir', 'out');
+    xlabel('Time (s)');
     xlim([-10 dat.time(end)+10]);
 end
 
