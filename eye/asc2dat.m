@@ -49,11 +49,12 @@ catch
 end
 
 % parse saccades
-arg1 = repmat({'%*s%*s%d%d'}, length(asc.esacc), 1);
+arg1 = repmat({'%*s%*s%d%d%d'}, length(asc.esacc), 1);
 sacctimes = cellfun(@sscanf, asc.esacc, arg1, 'UniformOutput', false); % parse blinktimes from ascdat
 sacctimes = cell2mat(cellfun(@transpose, sacctimes, 'UniformOutput', false)); %transpose and turn into matrix
 sacctimes = sacctimes(:, [1 2]); % remove last column
 timestamps = asc.dat(1,:); % get the time info
+
 try
     saccsmp = arrayfun(@(x) find(timestamps == x, 1,'first'), sacctimes, 'UniformOutput', true ); %find sample indices
 catch
