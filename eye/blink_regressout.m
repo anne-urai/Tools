@@ -1,5 +1,5 @@
 function [data] = blink_regressout(asc, data, blinksmp, saccsmp, plotme)
-% then regresses out the pupil response to blinks and saccades 
+% then regresses out the pupil response to blinks and saccades
 % Anne Urai, 2015
 
 % get the stuff we need
@@ -16,16 +16,25 @@ if ~exist('plotme', 'var'); plotme = true; end % plot all this stuff
 % ====================================================== %
 
 if plotme,
-    figure;  subplot(511); plot(dat.time,dat.pupil, 'b');
-    axis tight; box off; ylabel('Raw');
+    clf;  subplot(511); plot(dat.time,dat.pupil);
+    axis tight; box off; ylabel('Interp');
 end
 
-% create a bandpass filter
-[b,a] = butter(2, [0.1 10]/(data.fsample/2));
-dat.bpfilt = filter(b,a, dat.pupil);
-
+% filter the pupil timecourse twice
+% first, get rid of slow drift
+[b,a] = butter(2, 0.02 / data.fsample, 'high');
+dat.hpfilt = filtfilt(b,a, dat.pupil);
 % get residuals for later
-dat.resid = dat.pupil - dat.bpfilt;
+dat.lowfreqresid = dat.pupil - dat.hpfilt;
+
+% also get rid of fast instrument noise
+[b,a] = butter(2, 4 / data.fsample, 'low');
+dat.bpfilt = filtfilt(b,a, dat.hpfilt);
+
+if plotme,
+    subplot(512); plot(dat.time,dat.bpfilt);
+    axis tight; box off; ylabel('Bandpass');
+end
 
 % ====================================================== %
 % STEP 2: DOWNSAMPLING
@@ -101,51 +110,110 @@ deconvolvedPupil       = pinv(designM) * downsmp'; % pinv more robust than inv?
 deconvolvedPupil       = reshape(deconvolvedPupil, range(impulse)*newFs, 2);
 
 % ====================================================== %
-% STEP 5: FIT CANONICAL RESPONSES
+% STEP 5: FIT CANONICAL IRF GAMMA FUNCS
 % ====================================================== %
 
-% Erlang gamma function from Hoeks and Levelt, Wierda
-%ft = fittype('x.^w .* exp(-x.*w ./ tmax)');
-doublegamma = fittype('s1 * ((x.*n1) * exp(-n1.*x ./ tmax1)) + s2 + ((x.*n2) * exp(-n2.*x ./ tmax2))');
+% double Erlang gamma function from Hoeks and Levelt, Wierda
+
+doublegamma = fittype('s1 * (x.^n1) * exp((-n1.*x) ./ tmax1) + s2 * (x.^n2) * exp((-n2.*x) ./ tmax2)');
 x = linspace(0, range(impulse), numel(deconvolvedPupil(:, 1)));
 
+% demean curves before fitting
+deconvolvedPupil(:, 1) = deconvolvedPupil(:, 1) - mean(deconvolvedPupil(:, 1));
+deconvolvedPupil(:, 2) = deconvolvedPupil(:, 2) - mean(deconvolvedPupil(:, 2));
+
 % constrained fit to the deconvolved kernels
-fitIRF = fit(x', deconvolvedPupil(:, 1), doublegamma, ...
+fitIRFblink = fit(x', deconvolvedPupil(:, 1), doublegamma, ...
+    'startpoint', [10, 10, -1, 1, 0.9, 2.5], ...
+    'lower', [9, 8, -Inf, 1e-25, 0.1, 1.5], ...
+    'upper', [11, 12, -1e-25, Inf, 1.5, 4]);
+blinkIRF = feval(fitIRFblink, x');
+
+% also for saccade response
+fitIRFsacc = fit(x', deconvolvedPupil(:, 2), doublegamma, ...
     'startpoint', [10, 10, -1, 1, 0.9, 2.5], ...
     'lower', [9, 8, -Inf, 1e-25, 0.5, 1.5], ...
-    'upper', [11, 12, 1e-25, Inf, 1.5, 4])
-
-fitCoefs = coeffvalues(fitIRF);
-
+    'upper', [11, 12, -1e-25, Inf, 1.5, 4]);
+saccIRF = feval(fitIRFsacc, x');
 
 % check if the fits look good
 if plotme,
-    subplot(5,3,4);
-    plot(linspace(impulse(1), impulse(2), range(impulse)*newFs), deconvolvedPupil);
-    box off; axis tight;
+    subplot(5,3,7);
+    % first, blink stuff
+    h = plot(fitIRFblink, x', deconvolvedPupil(:, 1));
+    legend off; box off; axis tight; ylabel('Blink');
+    
+    subplot(5,3,8);
+    % first, blink stuff
+    plot(fitIRFsacc, x', deconvolvedPupil(:, 2));
+    legend off;
+    box off; axis tight; ylabel('Saccade');
 end
 
-% convolve them with the sample regresssamplelogical  = zeros(length(downsmp), 1);
-samplelogical(blinksmp(:, 2)) = 1;
-reg1 = cconv(samplelogical, deconvolvedPupil(:, 1));
-reg1 = reg1(1:length(samplelogical));
-
-% convolve them with the sample regressors
-samplelogical  = zeros(length(dat.bpfilt), 1);
-samplelogical(saccsmp(:, 2)) = 1;
-reg2 = cconv(samplelogical, deconvolvedPupil(:, 2));
-reg2 = reg2(1:length(samplelogical));
-
-
-
 % ====================================================== %
-% STEP 4: REGRESS OUT THOSE RESPONSES
+% UPSAMPLE AND MAKE REGRESSORS
 % ====================================================== %
 
+% upsample to the sample rate of the data
+blinkIRFup = resample(blinkIRF, data.fsample, newFs);
 
+% convolve with timepoints of events in original data
+samplelogical = zeros(length(dat.pupil), 1);
+offset = blinksmp(:, 2) + impulse(1)*data.fsample;
+offset(offset<0) = []; % remove those that we cant catch so early
+samplelogical(offset)   = 1; % put 1s at these events
+% convolve
+reg1 = cconv(samplelogical, blinkIRFup);
+reg1 = reg1(1:length(samplelogical))';
 
+% SAME FOR SACCADES
+% upsample to the sample rate of the data
+saccIRFup = resample(saccIRF, data.fsample, newFs);
 
-assert(1==0)
+% convolve with timepoints of events in original data
+samplelogical = zeros(length(dat.pupil), 1);
+offset = saccsmp(:, 2) + impulse(1)*data.fsample;
+offset(offset<0) = []; % remove those that we cant catch so early
+samplelogical(offset)   = 1; % put 1s at these events
+% convolve
+reg2 = cconv(samplelogical, saccIRFup);
+reg2 = reg2(1:length(samplelogical))';
+
+% ====================================================== %
+% REGRESS OUT THOSE RESPONSES FROM DATA
+% ====================================================== %
+
+% make design matrix
+designM = [ones(size(reg1))' reg1' reg2'];
+
+% estimate glm weights
+b = regress(dat.pupil', designM);
+
+% generate prediction just based on these regressors
+prediction = designM * b;
+
+% subtract prediction
+dat.residualpupil = dat.pupil - prediction';
+
+if plotme,
+    subplot(514); plot(dat.time,prediction);
+    axis tight; box off; ylabel('Prediction');
+end
+
+% ====================================================== %
+% ADD BACK THE SLOW DRIFT
+% ====================================================== %
+
+newpupil = dat.lowfreqresid + dat.residualpupil;
+
+if plotme,
+    subplot(515);
+    plot(dat.time, dat.pupil', 'color', [0.3 0.3 0.3]); hold on;
+    plot(dat.time,newpupil);
+    axis tight; box off; ylabel('Cleaned');
+end
+
+data.trial{1}(find(strcmp(data.label, 'EyePupil')==1),:) = newpupil;
 
 end
 
