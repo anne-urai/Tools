@@ -1,4 +1,4 @@
-function [data] = blink_regressout(asc, data, blinksmp, saccsmp, plotme)
+function [data] = blink_regressout(data, blinksmp, saccsmp, plotme)
 % then regresses out the pupil response to blinks and saccades
 % Anne Urai, 2015
 
@@ -24,7 +24,7 @@ end
 % filter the pupil timecourse twice
 % first, get rid of slow drift
 [b,a] = butter(2, 0.02 / data.fsample, 'high');
-dat.hpfilt = filtfilt(b,a, dat.pupil);
+dat.hpfilt = filtfilt(b,a, dat.pupil); % filter with zero lag
 % get residuals for later
 dat.lowfreqresid = dat.pupil - dat.hpfilt;
 
@@ -58,45 +58,19 @@ colcnt = 1;
 for r = 1:2, % two regressors
     
     % create a logical vector to speed up the analyses
-    samplelogical                      = zeros(length(downsmp), 1);
     switch r
         case 1
-            samplelogical(newblinksmp(:, 2))   = 1; % first sample of this regressor
+            thissmp = newblinksmp(:, 2);
         case 2
-            samplelogical(newsaccsmp(:, 2))   = 1; % first sample of this regressor
+            thissmp = newsaccsmp(:, 2);
     end
     
     % put samples in design matrix at the right spot
     impulse = [-1 5];
-    
-    % shift the starting points so the deconvolution catches -500 ms
-    samplelogical = circshift(samplelogical, newFs * impulse(1));
-    for c = 1 : range(impulse)*newFs,
-        % for each col, put ones at the next sample values
-        designM(:, colcnt)   = samplelogical;
-        samplelogical   = [0; samplelogical(1:end-1)]; % shift
-        colcnt = colcnt + 1;
-    end
-end
-
-% deconvolve to get IRFs
-clear designM
-colcnt = 1;
-for r = 1:2, % two regressors
-    
-    % put samples in design matrix at the right spot
-    impulse = [-0.5 5];
-    
-    % create a logical vector to speed up the analyses
+    thissmp = thissmp + newFs * impulse(1); % shift by the offset we're interested in
+    thissmp(thissmp < 1) = []; % remove too early samples
     samplelogical = zeros(length(downsmp), 1);
-    switch r
-        case 1
-            offset = newblinksmp(:, 2) + impulse(1)*newFs;
-        case 2
-            offset = newsaccsmp(:, 2) + impulse(1)*newFs;
-    end
-    offset(offset<0) = []; % remove those that we cant catch so early
-    samplelogical(offset)   = 1; % put 1s at these events
+    samplelogical(thissmp) = 1; % put 1s in the design matrix
     
     % shift the starting points so the deconvolution catches -500 ms
     for c = 1 : range(impulse)*newFs,
@@ -108,52 +82,40 @@ for r = 1:2, % two regressors
 end
 
 % deconvolve to get IRFs
-deconvolvedPupil       = pinv(designM) * downsmp'; % pinv more robust than inv?
+deconvolvedPupil       = pinv(designM) * downsmp'; % pinv more robust than inv
 deconvolvedPupil       = reshape(deconvolvedPupil, range(impulse)*newFs, 2);
 
 % ====================================================== %
-% STEP 5: FIT CANONICAL IRF GAMMA FUNCS
+% STEP 4: FIT CANONICAL IRF GAMMA FUNCS
 % ====================================================== %
 
 % double Erlang gamma function from Hoeks and Levelt, Wierda
-
-doublegamma = fittype('s1 * (x.^n1) * exp((-n1.*x) ./ tmax1) + s2 * (x.^n2) * exp((-n2.*x) ./ tmax2)');
-x = linspace(0, range(impulse), numel(deconvolvedPupil(:, 1)));
+x = linspace(0, range(impulse), numel(deconvolvedPupil(:, 1)))';
 
 % curves should start at 0 before fitting
 deconvolvedPupil(:, 1) = deconvolvedPupil(:, 1) - deconvolvedPupil(1,1);
 deconvolvedPupil(:, 2) = deconvolvedPupil(:, 2) - deconvolvedPupil(1,2);
 
-% constrained fit to the deconvolved kernels
-fitIRFblink = fit(x', deconvolvedPupil(:, 1), doublegamma, ...
-    'startpoint', [10, 10, -1, 1, 0.9, 2.5], ...
-    'lower', [9, 8, -Inf, 1e-25, 0.1, 1.5], ...
-    'upper', [11, 12, -1e-25, Inf, 1.5, 4]);
-blinkIRF = feval(fitIRFblink, x');
-
-% also for saccade response
-fitIRFsacc = fit(x', deconvolvedPupil(:, 2), doublegamma, ...
-    'startpoint', [10, 10, -1, 1, 0.9, 2.5], ...
-    'lower', [9, 8, -Inf, 1e-25, 0.5, 1.5], ...
-    'upper', [11, 12, -1e-25, Inf, 1.5, 4]);
-saccIRF = feval(fitIRFsacc, x');
+blinkIRF = doublegamma_fit(x, deconvolvedPupil(:, 1), 'blink');
+saccIRF = doublegamma_fit(x, deconvolvedPupil(:, 2), 'sacc');
 
 % check if the fits look good
 if plotme,
     subplot(6,3,7);
     % first, blink stuff
-    h = plot(fitIRFblink, x', deconvolvedPupil(:, 1));
+    plotx = linspace(impulse(1), impulse(2), numel(deconvolvedPupil(:, 1)));
+    plot(plotx, deconvolvedPupil(:, 1), '.b', plotx, blinkIRF, 'r-');
     legend off; box off; axis tight; ylabel('Blink');
     
     subplot(6,3,8);
     % first, blink stuff
-    plot(fitIRFsacc, x', deconvolvedPupil(:, 2));
+    plot(plotx, deconvolvedPupil(:, 2), '.b', plotx, saccIRF, 'r-');
     legend off;
     box off; axis tight; ylabel('Saccade');
 end
 
 % ====================================================== %
-% UPSAMPLE AND MAKE REGRESSORS
+% STEP 5: UPSAMPLE AND MAKE REGRESSORS
 % ====================================================== %
 
 % upsample to the sample rate of the data
@@ -162,8 +124,9 @@ blinkIRFup = resample(blinkIRF, data.fsample, newFs);
 % convolve with timepoints of events in original data
 samplelogical = zeros(length(dat.pupil), 1);
 offset = blinksmp(:, 2) + impulse(1)*data.fsample;
-offset(offset<0) = []; % remove those that we cant catch so early
+offset(offset<1) = []; % remove those that we cant catch so early
 samplelogical(offset)   = 1; % put 1s at these events
+
 % convolve
 reg1 = cconv(samplelogical, blinkIRFup);
 reg1 = reg1(1:length(samplelogical))';
@@ -175,14 +138,15 @@ saccIRFup = resample(saccIRF, data.fsample, newFs);
 % convolve with timepoints of events in original data
 samplelogical = zeros(length(dat.pupil), 1);
 offset = saccsmp(:, 2) + impulse(1)*data.fsample;
-offset(offset<0) = []; % remove those that we cant catch so early
+offset(offset<1) = []; % remove those that we cant catch so early
 samplelogical(offset)   = 1; % put 1s at these events
+
 % convolve
 reg2 = cconv(samplelogical, saccIRFup);
 reg2 = reg2(1:length(samplelogical))';
 
 % ====================================================== %
-% REGRESS OUT THOSE RESPONSES FROM DATA
+% STEP 6: REGRESS OUT THOSE RESPONSES FROM DATA
 % ====================================================== %
 
 % make design matrix
@@ -200,6 +164,9 @@ prediction = designM * b;
 % subtract prediction
 dat.residualpupil = dat.bpfilt - prediction';
 
+% alternatively, project it out
+dat.residualpupil = projectout(dat.bpfilt, prediction')';
+
 if plotme,
     subplot(614); plot(dat.time,prediction);
     axis tight; box off; ylabel('Prediction');
@@ -213,7 +180,7 @@ if plotme,
 end
 
 % ====================================================== %
-% ADD BACK THE SLOW DRIFT
+% STEP 7: ADD BACK THE SLOW DRIFT
 % ====================================================== %
 
 newpupil = dat.lowfreqresid + dat.residualpupil;
@@ -229,4 +196,59 @@ data.trial{1}(find(strcmp(data.label, 'EyePupil')==1),:) = newpupil;
 
 end
 
+
+function irf = doublegamma_fit(x, y, type)
+% return the sum of squared error of the fit
+
+switch type
+    case 'blink'
+        startpt = [-1, 1, 10, 10, 1, 2.5];
+        lb = [-Inf, 1e-25, 9, 8, 0.5, 1.5];
+        ub = [ -1e-25, Inf, 11, 12, 2, 5];
+        disp('fitting blink double gamma');
+    case 'sacc'
+        startpt = [-1, 1, 10, 10, 1, 2.5];
+        lb = [-Inf, 1e-25, 9, 8, 0.5, 1.5];
+        ub = [ -1e-25, Inf, 11, 12, 3, 5];
+        disp('fitting saccade double gamma');
+end
+
+if 1,
+    doublegamma = @(s1, s2, n1, n2, tmax1, tmax2, x) ...
+        s1 * (x.^n1) .* exp((-n1.*x) ./ tmax1) + s2 * (x.^n2) .* exp((-n2.*x) ./ tmax2);
+    doublegamma = fittype(doublegamma);
+    fitobj = fit(x, y, doublegamma, ...
+        'startpoint', startpt, 'lower', lb, 'upper', ub);
+    irf = feval(fitobj, x);
+    
+else
+    
+    fun = @(params) doublegamma_ls(data, params);
+    
+    [xfinal,ffinal,exitflag] = rmsearch(fun,'fmincon', ...
+        startpt,lb, ub);
+    
+    % check if this went well
+    [~, bestfit]  = min(ffinal);
+    assert(exitflag(bestfit) > 0);
+    params = xfinal(bestfit, :);
+    
+    % evaluate the irf
+    x = 1:length(data);
+    irf = params(1) * (x.^params(3)) .* exp((-params(3).*x) ./ params(5)) + params(2) * (x.^params(4)) .* exp((-params(4).*x) ./ params(6));
+end
+end
+
+
+function sse = doublegamma_ls(data, params)
+
+x = 1:length(data);
+
+% define the function
+y = params(1) * (x.^params(3)) .* exp((-params(3).*x) ./ params(5)) + params(2) * (x.^params(4)) .* exp((-params(4).*x) ./ params(6));
+
+% evaluate it
+sse = sum((data' - y) .^2); % sum of squared errors
+
+end
 

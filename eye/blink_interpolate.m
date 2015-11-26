@@ -1,4 +1,4 @@
-function [newpupil, totalblinksmp] = blink_interpolate(asc, data, blinksmp, plotme)
+function [newpupil, totalblinksmp] = blink_interpolate(data, blinksmp, plotme)
 % interpolates blinks and missing data
 % Anne Urai, 2015
 

@@ -38,27 +38,39 @@ if data.fsample ~= 1000,
 end
 
 % parse blinks
-arg1 = repmat({'%*s%*s%d%d'}, length(asc.eblink), 1);
-blinktimes = cellfun(@sscanf, asc.eblink, arg1, 'UniformOutput', false); % parse blinktimes from ascdat
-blinktimes = cell2mat(cellfun(@transpose, blinktimes, 'UniformOutput', false)); %transpose and turn into matrix
+
+blinktimes = cellfun(@regexp, asc.eblink, ...
+    repmat({'\d*'}, length(asc.eblink), 1), repmat({'match'}, length(asc.eblink), 1), ...
+    'UniformOutput', false); % parse blinktimes from ascdat
+blinktimes2 = nan(length(blinktimes), 2);
+for s = 1:length(blinktimes), a = blinktimes{s};
+    for j = 1:2, blinktimes2(s, j) = str2double(a{j}); end
+end
 timestamps = asc.dat(1,:); % get the time info
 try
-    blinksmp = arrayfun(@(x) find(timestamps == x, 1,'first'), blinktimes, 'UniformOutput', true ); %find sample indices of blinktimes in timestamps
+    blinksmp = arrayfun(@(x) find(timestamps == x, 1,'first'), blinktimes2, 'UniformOutput', true ); %find sample indices of blinktimes in timestamps
 catch
-    blinksmp = arrayfun(@(x) dsearchn(timestamps', x), blinktimes, 'UniformOutput', true ); %find sample indices of blinktimes in timestamps
+    blinksmp = arrayfun(@(x) dsearchn(timestamps', x), blinktimes2, 'UniformOutput', true ); %find sample indices of blinktimes in timestamps
 end
 
 % parse saccades
-arg1 = repmat({'%*s%*s%d%d%d'}, length(asc.esacc), 1);
-sacctimes = cellfun(@sscanf, asc.esacc, arg1, 'UniformOutput', false); % parse blinktimes from ascdat
-sacctimes = cell2mat(cellfun(@transpose, sacctimes, 'UniformOutput', false)); %transpose and turn into matrix
-sacctimes = sacctimes(:, [1 2]); % remove last column
-timestamps = asc.dat(1,:); % get the time info
-
+sacctimes = cellfun(@regexp, asc.esacc, ...
+    repmat({'\d*'}, length(asc.esacc), 1), repmat({'match'}, length(asc.esacc), 1), ...
+    'UniformOutput', false); % parse blinktimes from ascdat
+sacctimes2 = nan(length(sacctimes), 2);
+for s = 1:length(sacctimes), a = sacctimes{s};
+    for j = 1:2,
+        if str2double(a{j}) ~= 0,
+            sacctimes2(s, j) = str2double(a{j});
+        else
+            sacctimes2(s, j) = str2double(a{j+1});
+        end
+    end
+end
 try
-    saccsmp = arrayfun(@(x) find(timestamps == x, 1,'first'), sacctimes, 'UniformOutput', true ); %find sample indices
+    saccsmp = arrayfun(@(x) find(timestamps == x, 1,'first'), sacctimes2, 'UniformOutput', true ); %find sample indices
 catch
-    saccsmp = arrayfun(@(x) dsearchn(timestamps', x), sacctimes, 'UniformOutput', true );
+    saccsmp = arrayfun(@(x) dsearchn(timestamps', x), sacctimes2, 'UniformOutput', true );
 end
 
 end
