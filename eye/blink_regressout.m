@@ -16,8 +16,9 @@ if ~exist('plotme', 'var'); plotme = true; end % plot all this stuff
 % ====================================================== %
 
 if plotme,
-    clf;  subplot(511); plot(dat.time,dat.pupil);
+    clf;  subplot(611); plot(dat.time,dat.pupil);
     axis tight; box off; ylabel('Interp');
+    set(gca, 'xtick', []);
 end
 
 % filter the pupil timecourse twice
@@ -32,8 +33,9 @@ dat.lowfreqresid = dat.pupil - dat.hpfilt;
 dat.bpfilt = filtfilt(b,a, dat.hpfilt);
 
 if plotme,
-    subplot(512); plot(dat.time,dat.bpfilt);
+    subplot(612); plot(dat.time,dat.bpfilt);
     axis tight; box off; ylabel('Bandpass');
+    set(gca, 'xtick', []);
 end
 
 % ====================================================== %
@@ -118,9 +120,9 @@ deconvolvedPupil       = reshape(deconvolvedPupil, range(impulse)*newFs, 2);
 doublegamma = fittype('s1 * (x.^n1) * exp((-n1.*x) ./ tmax1) + s2 * (x.^n2) * exp((-n2.*x) ./ tmax2)');
 x = linspace(0, range(impulse), numel(deconvolvedPupil(:, 1)));
 
-% demean curves before fitting
-deconvolvedPupil(:, 1) = deconvolvedPupil(:, 1) - mean(deconvolvedPupil(:, 1));
-deconvolvedPupil(:, 2) = deconvolvedPupil(:, 2) - mean(deconvolvedPupil(:, 2));
+% curves should start at 0 before fitting
+deconvolvedPupil(:, 1) = deconvolvedPupil(:, 1) - deconvolvedPupil(1,1);
+deconvolvedPupil(:, 2) = deconvolvedPupil(:, 2) - deconvolvedPupil(1,2);
 
 % constrained fit to the deconvolved kernels
 fitIRFblink = fit(x', deconvolvedPupil(:, 1), doublegamma, ...
@@ -138,12 +140,12 @@ saccIRF = feval(fitIRFsacc, x');
 
 % check if the fits look good
 if plotme,
-    subplot(5,3,7);
+    subplot(6,3,7);
     % first, blink stuff
     h = plot(fitIRFblink, x', deconvolvedPupil(:, 1));
     legend off; box off; axis tight; ylabel('Blink');
     
-    subplot(5,3,8);
+    subplot(6,3,8);
     % first, blink stuff
     plot(fitIRFsacc, x', deconvolvedPupil(:, 2));
     legend off;
@@ -189,15 +191,25 @@ designM = [ones(size(reg1))' reg1' reg2'];
 % estimate glm weights
 b = regress(dat.pupil', designM);
 
+% set intercept to zero to mean centre
+b(1) = 0;
+
 % generate prediction just based on these regressors
 prediction = designM * b;
 
 % subtract prediction
-dat.residualpupil = dat.pupil - prediction';
+dat.residualpupil = dat.bpfilt - prediction';
 
 if plotme,
-    subplot(514); plot(dat.time,prediction);
+    subplot(614); plot(dat.time,prediction);
     axis tight; box off; ylabel('Prediction');
+    set(gca, 'xtick', []);
+    
+    subplot(615);
+    plot(dat.time, dat.bpfilt', 'color', [0.5 0.5 0.5]); hold on;
+    plot(dat.time,dat.residualpupil);
+    axis tight; box off; ylabel('Residual');
+    set(gca, 'xtick', []);
 end
 
 % ====================================================== %
@@ -207,10 +219,10 @@ end
 newpupil = dat.lowfreqresid + dat.residualpupil;
 
 if plotme,
-    subplot(515);
-    plot(dat.time, dat.pupil', 'color', [0.3 0.3 0.3]); hold on;
+    subplot(616);
+    plot(dat.time, dat.pupil', 'color', [0.5 0.5 0.5]); hold on;
     plot(dat.time,newpupil);
-    axis tight; box off; ylabel('Cleaned');
+    axis tight; box off; ylabel('+ lowfreq');
 end
 
 data.trial{1}(find(strcmp(data.label, 'EyePupil')==1),:) = newpupil;
