@@ -19,7 +19,7 @@ if ~exist('plotme', 'var'); plotme = true; end % plot all this stuff
 % ====================================================== %
 
 if plotme,
-    figure;  sp1 = subplot(511); plot(dat.time,dat.pupil);
+    clf;  sp1 = subplot(511); plot(dat.time,dat.pupil);
     axis tight; box off; ylabel('Raw');
     set(gca, 'xtick', []);
 end
@@ -36,21 +36,25 @@ end
 blinksmp(isnan(nanmean(blinksmp, 2)), :) = [];
 
 % pad the blinks
-padding       = 0.100; % how long before and after do we want to pad?
+padding       = 0.150; % how long before and after do we want to pad?
 padblinksmp(:,1) = round(blinksmp(:,1) - padding * data.fsample);
 padblinksmp(:,2) = round(blinksmp(:,2) + padding * data.fsample);
 
-% avoid negative idx
+% avoid idx outside range
 if padblinksmp(1,1) < 0, padblinksmp(1,1) = 1; end
+if padblinksmp(end, 2) > length(dat.pupil), padblinksmp(end, 2) = length(dat.pupil); end
 
 % make the pupil NaN at those points
 for b = 1:size(padblinksmp,1),
     dat.pupil(padblinksmp(b,1):padblinksmp(b,2)) = NaN;
 end
 
+% also set zero datapoints to nan
+dat.pupil(dat.pupil<10) = nan;
+
 % interpolate linearly
 dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
-    dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
+    dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear', 'extrap');
 
 % to avoid edge artefacts at the beginning and end of file, pad in seconds
 edgepad = 1;
@@ -76,49 +80,66 @@ win             = hanning(11);
 pupildatsmooth  = filter2(win.',dat.pupil,'same');
 
 dat.pupildiff = diff(pupildatsmooth) - mean(diff(pupildatsmooth)) / std(diff(pupildatsmooth));
-[peaks, loc] = findpeaks(dat.pupildiff, 'minpeakheight', 3*std(dat.pupildiff), 'minpeakdistance', 0.5*data.fsample);
+[peaks, loc] = findpeaks(abs(dat.pupildiff), 'minpeakheight', 3*std(dat.pupildiff), 'minpeakdistance', 0.5*data.fsample);
 
 if plotme, sp3 = subplot(513);
-    plot(dat.time(2:end), dat.pupildiff); 
+    plot(dat.time(2:end), dat.pupildiff);
     hold on; plot(dat.time(loc), peaks, 'o');
     axis tight; box off; ylabel('Peak detect');
     set(gca, 'xtick', []);
 end
 
-% convert peaks into blinksmp
-newblinksmp = nan(length(peaks), 2);
-for p = 1:length(peaks),
-    newblinksmp(p, 1) = loc(p) - 2*padding * data.fsample; % peak detected will be eye-opening again
-    newblinksmp(p, 2) = loc(p) + padding * data.fsample;
+if ~isempty(peaks),
+    % convert peaks into blinksmp
+    newblinksmp = nan(length(peaks), 2);
+    for p = 1:length(peaks),
+        newblinksmp(p, 1) = loc(p) - 2*padding * data.fsample; % peak detected will be eye-opening again
+        newblinksmp(p, 2) = loc(p) + padding * data.fsample;
+    end
+    
+    % merge 2 blinks into 1 if they are < 250 ms together (coalesce)
+    coalesce = 0.250;
+    for b = 1:size(newblinksmp, 1)-1,
+        if newblinksmp(b+1, 1) - newblinksmp(b, 2) < coalesce * data.fsample,
+            newblinksmp(b, 2) = newblinksmp(b+1, 2);
+            newblinksmp(b+1, :) = nan;
+        end
+    end
+    % remove those duplicates
+    newblinksmp(isnan(nanmean(newblinksmp, 2)), :) = [];
+    
+    % make the pupil NaN at those points
+    for b = 1:size(newblinksmp,1),
+        dat.pupil(newblinksmp(b,1):newblinksmp(b,2)) = NaN;
+    end
+    
+    % interpolate linearly
+    dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
+        dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
+    
+    if plotme,
+        sp4 = subplot(514); plot(dat.time, dat.pupil);
+        axis tight; box off; ylabel('Clean');
+        set(gca, 'xtick', []);
+    end
+    
+    % output the full blinksample matrix
+    totalblinksmp = [blinksmp; newblinksmp];
+    
+else
+    totalblinksmp = blinksmp;
 end
-
-% make the pupil NaN at those points
-for b = 1:size(newblinksmp,1),
-    dat.pupil(newblinksmp(b,1):newblinksmp(b,2)) = NaN;
-end
-
-% interpolate linearly
-dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
-    dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
-
-if plotme,
-    sp4 = subplot(514); plot(dat.time, dat.pupil);
-    axis tight; box off; ylabel('Clean');
-    set(gca, 'xtick');
-end
-
-% output the full blinksample matrix
-totalblinksmp = [blinksmp; newblinksmp];
 
 % sort
 totalblinksmp = sort(totalblinksmp);
 newpupil = dat.pupil;
 
 % link axes
-if plotme, 
-    linkaxes([sp1 sp2 sp3 sp4], 'x'); 
-    set([sp1 sp2 sp3 sp4], 'tickdir', 'out');
-    xlabel('Time (s)');
+if plotme,
+    try
+        linkaxes([sp1 sp2 sp3 sp4], 'x');
+        set([sp1 sp2 sp3 sp4], 'tickdir', 'out');
+    end
     xlim([-10 dat.time(end)+10]);
 end
 

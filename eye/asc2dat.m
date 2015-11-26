@@ -42,7 +42,11 @@ arg1 = repmat({'%*s%*s%d%d'}, length(asc.eblink), 1);
 blinktimes = cellfun(@sscanf, asc.eblink, arg1, 'UniformOutput', false); % parse blinktimes from ascdat
 blinktimes = cell2mat(cellfun(@transpose, blinktimes, 'UniformOutput', false)); %transpose and turn into matrix
 timestamps = asc.dat(1,:); % get the time info
-blinksmp = arrayfun(@(x) find(timestamps == x, 1,'first'), blinktimes, 'UniformOutput', true ); %find sample indices of blinktimes in timestamps
+try
+    blinksmp = arrayfun(@(x) find(timestamps == x, 1,'first'), blinktimes, 'UniformOutput', true ); %find sample indices of blinktimes in timestamps
+catch
+    blinksmp = arrayfun(@(x) dsearchn(timestamps', x), blinktimes, 'UniformOutput', true ); %find sample indices of blinktimes in timestamps
+end
 
 % parse saccades
 if 0,
