@@ -41,7 +41,7 @@ padblinksmp(:,1) = round(blinksmp(:,1) - padding * data.fsample);
 padblinksmp(:,2) = round(blinksmp(:,2) + padding * data.fsample);
 
 % avoid idx outside range
-if any(padblinksmp < 1), padblinksmp(padblinksmp < 1) = 1; end
+if any(padblinksmp(:) < 1), padblinksmp(find(padblinksmp < 1)) = 1; end
 if any(padblinksmp(:) > length(dat.pupil)), padblinksmp(find(padblinksmp > length(dat.pupil))) = length(dat.pupil); end
 
 % make the pupil NaN at those points
