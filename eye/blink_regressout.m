@@ -66,14 +66,14 @@ for r = 1:2, % two regressors
     end
     
     % put samples in design matrix at the right spot
-    impulse = [-1 5];
-    thissmp = thissmp + newFs * impulse(1); % shift by the offset we're interested in
+    imp = [-1 5];
+    thissmp = thissmp + newFs * imp(1); % shift by the offset we're interested in
     thissmp(thissmp < 1) = []; % remove too early samples
     samplelogical = zeros(length(downsmp), 1);
     samplelogical(thissmp) = 1; % put 1s in the design matrix
     
     % shift the starting points so the deconvolution catches -500 ms
-    for c = 1 : range(impulse)*newFs,
+    for c = 1 : range(imp)*newFs,
         % for each col, put ones at the next sample values
         designM(:, colcnt)   = samplelogical;
         samplelogical   = [0; samplelogical(1:end-1)]; % shift
@@ -83,14 +83,14 @@ end
 
 % deconvolve to get IRFs
 deconvolvedPupil       = pinv(designM) * downsmp'; % pinv more robust than inv
-deconvolvedPupil       = reshape(deconvolvedPupil, range(impulse)*newFs, 2);
+deconvolvedPupil       = reshape(deconvolvedPupil, range(imp)*newFs, 2);
 
 % ====================================================== %
 % STEP 4: FIT CANONICAL IRF GAMMA FUNCS
 % ====================================================== %
 
 % double Erlang gamma function from Hoeks and Levelt, Wierda
-x = linspace(0, range(impulse), numel(deconvolvedPupil(:, 1)))';
+x = linspace(0, range(imp), numel(deconvolvedPupil(:, 1)))';
 
 % curves should start at 0 before fitting
 deconvolvedPupil(:, 1) = deconvolvedPupil(:, 1) - deconvolvedPupil(1,1);
@@ -103,7 +103,7 @@ saccIRF = doublegamma_fit(x, deconvolvedPupil(:, 2), 'sacc');
 if plotme,
     subplot(6,3,7);
     % first, blink stuff
-    plotx = linspace(impulse(1), impulse(2), numel(deconvolvedPupil(:, 1)));
+    plotx = linspace(imp(1), imp(2), numel(deconvolvedPupil(:, 1)));
     plot(plotx, deconvolvedPupil(:, 1), '.b', plotx, blinkIRF, 'r-');
     legend off; box off; axis tight; ylabel('Blink');
     
@@ -123,7 +123,7 @@ blinkIRFup = resample(blinkIRF, data.fsample, newFs);
 
 % convolve with timepoints of events in original data
 samplelogical = zeros(length(dat.pupil), 1);
-offset = blinksmp(:, 2) + impulse(1)*data.fsample;
+offset = round(blinksmp(:, 2) + imp(1)*data.fsample);
 offset(offset<1) = []; % remove those that we cant catch so early
 samplelogical(offset)   = 1; % put 1s at these events
 
@@ -137,7 +137,7 @@ saccIRFup = resample(saccIRF, data.fsample, newFs);
 
 % convolve with timepoints of events in original data
 samplelogical = zeros(length(dat.pupil), 1);
-offset = saccsmp(:, 2) + impulse(1)*data.fsample;
+offset = round(saccsmp(:, 2) + imp(1)*data.fsample);
 offset(offset<1) = []; % remove those that we cant catch so early
 samplelogical(offset)   = 1; % put 1s at these events
 
@@ -153,7 +153,7 @@ reg2 = reg2(1:length(samplelogical))';
 designM = [ones(size(reg1))' reg1' reg2'];
 
 % estimate glm weights
-b = regress(dat.pupil', designM);
+[b] = regress(dat.pupil', designM);
 
 % set intercept to zero to mean centre
 b(1) = 0;
