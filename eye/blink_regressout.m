@@ -1,5 +1,9 @@
 function [data] = blink_regressout(data, blinksmp, saccsmp, plotme)
-% then regresses out the pupil response to blinks and saccades
+% method by Knapen, de Gee et al. 
+% estimate canonical responses to blinks and saccades, then take those out
+% of the pupil timecourse
+% requires FieldTrip-style data structure before epoching
+%
 % Anne Urai, 2015
 
 % get the stuff we need
@@ -153,19 +157,11 @@ reg2 = reg2(1:length(samplelogical))';
 designM = [ones(size(reg1))' reg1' reg2'];
 
 % estimate glm weights
-[b] = regress(dat.pupil', designM);
-
-% set intercept to zero to mean centre
-b(1) = 0;
-
-% generate prediction just based on these regressors
+[b, ~, resid] = regress(dat.bpfilt', designM);
 prediction = designM * b;
 
-% subtract prediction
-dat.residualpupil = dat.bpfilt - prediction';
-
-% alternatively, project it out
-dat.residualpupil = projectout(dat.bpfilt, prediction')';
+% use residuals
+dat.residualpupil = resid';
 
 if plotme,
     subplot(614); plot(dat.time,prediction);
