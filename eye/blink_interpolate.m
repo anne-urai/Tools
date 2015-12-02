@@ -1,4 +1,4 @@
-function [newpupil, totalblinksmp] = blink_interpolate(data, blinksmp, plotme)
+function [newpupil] = blink_interpolate(data, blinksmp, plotme)
 % interpolates blinks and missing data
 % Anne Urai, 2015
 
@@ -122,16 +122,9 @@ if ~isempty(peaks),
         axis tight; box off; ylabel('Clean');
         set(gca, 'xtick', []);
     end
-    
-    % output the full blinksample matrix
-    totalblinksmp = [blinksmp; newblinksmp];
-    
-else
-    totalblinksmp = blinksmp;
 end
 
 % sort
-totalblinksmp = sort(totalblinksmp);
 newpupil = dat.pupil;
 
 % link axes
