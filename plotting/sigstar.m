@@ -165,7 +165,7 @@ hold on
 H=ones(length(groups),2); %The handles will be stored here
 
 y=ylim;
-yd=myRange(y)*0.05; %separate sig bars vertically by 5%
+yd=myRange(y)*0.1; %separate sig bars vertically by 5%
 
 for ii=1:length(groups)
     thisY=findMinY(xlocs(ii,:))+yd;
