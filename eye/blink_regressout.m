@@ -1,4 +1,4 @@
-function [data] = blink_regressout(data, blinksmp, saccsmp, plotme)
+function [data] = blink_regressout(data, blinksmp, saccsmp, plotme, addBackSlowDrift)
 % method by Knapen, de Gee et al. 
 % estimate canonical responses to blinks and saccades, then take those out
 % of the pupil timecourse
@@ -27,13 +27,13 @@ end
 
 % filter the pupil timecourse twice
 % first, get rid of slow drift
-[b,a] = butter(2, 0.02 / data.fsample, 'high');
+[b,a] = butter(2, 0.01 / data.fsample, 'high');
 dat.hpfilt = filtfilt(b,a, dat.pupil); % filter with zero lag
 % get residuals for later
 dat.lowfreqresid = dat.pupil - dat.hpfilt;
 
 % also get rid of fast instrument noise
-[b,a] = butter(2, 4 / data.fsample, 'low');
+[b,a] = butter(2, 10 / data.fsample, 'low');
 dat.bpfilt = filtfilt(b,a, dat.hpfilt);
 
 if plotme,
@@ -179,7 +179,11 @@ end
 % STEP 7: ADD BACK THE SLOW DRIFT
 % ====================================================== %
 
-newpupil = dat.lowfreqresid + dat.residualpupil;
+if addBackSlowDrift,
+    newpupil = dat.lowfreqresid + dat.residualpupil;
+else
+    newpupil = dat.residualpupil;
+end
 
 if plotme,
     subplot(616);
