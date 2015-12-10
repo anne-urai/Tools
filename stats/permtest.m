@@ -2,7 +2,7 @@ function out = permtest(a,b,tail,nrand)
 % paired or one-sample permutation test
 
 if ~exist('b', 'var'),   b = zeros(size(a)); end
-if ~exist('nrand', 'var'), nrand = 1000; end
+if ~exist('nrand', 'var'), nrand = 10000; end
 if ~exist('tail', 'var'), tail = 0; end
 
 a = a(:);
