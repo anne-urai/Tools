@@ -1,5 +1,4 @@
-function [hb,he]=barwebQH(barvalues, errors, bw_legend, width, bw_colormap )
-
+function [hb,he]=barwebQH(barvalues, errors, bw_legend, width, bw_colormap, pval)
 %
 % [hb,he]=barweb(barvalues, errors, bw_colormap, bw_legend, width )
 %
@@ -21,6 +20,7 @@ function [hb,he]=barwebQH(barvalues, errors, bw_legend, width, bw_colormap )
 % Updated: April 22, 2006 (ver 2.0)
 %
 % Modified by Quentin Huys November 2006
+% Modified by Anne Urai 2015, addition of p-values and use of sigstar
 
 % Get function arguments
 if nargin < 2
@@ -44,6 +44,7 @@ else
     if size(barvalues,2) == 1
         barvalues = barvalues';
         errors = errors';
+        pval = pval';
     end
     if size(barvalues,1) == 1
         barvalues = [barvalues; zeros(1,length(barvalues))];
@@ -57,14 +58,13 @@ else
     end
     
     % Plot bars and errors
-    hb=bar(barvalues, width);
+    hb=bar(barvalues, width, 'edgecolor', 'none');
     shading flat; %turns off the edges
     hold on;
     
     if length(bw_colormap)
         colormap(bw_colormap);
     else
-        %	colormap(jet);
     end
     groupwidth = min(0.8, numbars/(numbars+1.5));
     he=[];
@@ -74,6 +74,18 @@ else
         th=errorbar(x, barvalues(:,i), errors(:,i), 'k', 'linestyle', 'none');
         set(th, 'LineWidth', 1.4);
         he=[he;th];
+        for ii = 1:length(x),
+            if barvalues(ii, i) > 0,
+                thisY = barvalues(ii, i) + errors(ii, i)+ 0.2*range(get(gca, 'ylim'));
+            else
+                thisY = barvalues(ii, i) - errors(ii, i)- 0.2*range(get(gca, 'ylim'));
+            end
+            try
+                mysigstar(x(ii), thisY, pval(ii, i));
+            catch
+                mysigstar(x(ii), thisY, pval(i, ii));
+            end
+        end
     end
     
     xlim([0.5 numgroups-change_axis+0.5]);
@@ -82,9 +94,6 @@ else
         legend(bw_legend);%, 'location', 'best');%, 'fontsize',12);
         legend boxoff;
     end
-    
-    
-    
     hold off;
 end
 
