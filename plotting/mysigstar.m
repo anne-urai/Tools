@@ -4,53 +4,53 @@ function h = mysigstar(xpos, ypos, pval, color, whichWay)
 if ~exist('color', 'var'); color = 'k'; end
 if ~exist('whichWay', 'var'), whichWay = 'down'; end
 
-if pval < 0.05,
-    
-    if numel(ypos) > 1,
-        assert(ypos(1) == ypos(2), 'line wont be straight!');
-        ypos = ypos(1);
-    end
-    
-    % draw line
-    hold on;
-    if numel(xpos) > 1,
-        % plot the horizontal line
-        newY = ypos+0.01*range(get(gca, 'ylim'));
-        p = plot([xpos(1), xpos(2)], ...
-            [newY newY], '-', 'LineWidth',0.1, 'color', color);
-        
-        % also add small downward ticks
-        switch whichWay
-            case 'down'
-                plot([xpos(1) xpos(1)], [newY newY-0.05*range(get(gca, 'ylim'))], '-k', 'LineWidth', 0.1, 'color', color);
-                plot([xpos(2) xpos(2)], [newY newY-0.05*range(get(gca, 'ylim'))], '-k', 'LineWidth', 0.1, 'color', color);
-            case 'up'
-                plot([xpos(1) xpos(1)], [newY newY+0.05*range(get(gca, 'ylim'))], '-k', 'LineWidth', 0.1, 'color', color);
-                plot([xpos(2) xpos(2)], [newY newY+0.05*range(get(gca, 'ylim'))], '-k', 'LineWidth', 0.1, 'color', color);
-        end
-        
-        % use white background
-        txtBg = 'w';
-    else
-        txtBg = 'none';
-    end
-    
-    fz = 8;
-    if pval < 1e-3
-        txt = '***';
-    elseif pval < 1e-2
-        txt = '**';
-    elseif pval < 0.05
-        txt = '*';
-    else
-        % this should be smaller
-        txt = 'n.s.';
-        fz = 5;
-    end
-    
-    % draw the stars in the bar
-    h = text(mean(xpos), mean(ypos), txt, ...
-        'horizontalalignment', 'center', 'backgroundcolor', txtBg, 'margin', 1, 'fontsize', fz, 'color', color);
-else
-    warning('not significant, skipping');
+%if pval < 0.05,
+
+if numel(ypos) > 1,
+    assert(ypos(1) == ypos(2), 'line wont be straight!');
+    ypos = ypos(1);
 end
+
+% draw line
+hold on;
+if numel(xpos) > 1,
+    % plot the horizontal line
+    newY = ypos+0.01*range(get(gca, 'ylim'));
+    p = plot([xpos(1), xpos(2)], ...
+        [newY newY], '-', 'LineWidth', 0.5, 'color', color);
+    
+    % also add small downward ticks
+    switch whichWay
+        case 'down'
+            plot([xpos(1) xpos(1)], [newY newY-0.05*range(get(gca, 'ylim'))], '-k', 'LineWidth', 0.5, 'color', color);
+            plot([xpos(2) xpos(2)], [newY newY-0.05*range(get(gca, 'ylim'))], '-k', 'LineWidth', 0.5, 'color', color);
+        case 'up'
+            plot([xpos(1) xpos(1)], [newY newY+0.05*range(get(gca, 'ylim'))], '-k', 'LineWidth', 0.5, 'color', color);
+            plot([xpos(2) xpos(2)], [newY newY+0.05*range(get(gca, 'ylim'))], '-k', 'LineWidth', 0.5, 'color', color);
+    end
+    
+    % use white background
+    txtBg = 'w';
+else
+    txtBg = 'none';
+end
+
+fz = 8;
+if pval < 1e-3
+    txt = '***';
+elseif pval < 1e-2
+    txt = '**';
+elseif pval < 0.05
+    txt = '*';
+else
+    % this should be smaller
+    txt = 'n.s.';
+    fz = 5;
+end
+
+% draw the stars in the bar
+h = text(mean(xpos), mean(ypos), txt, ...
+    'horizontalalignment', 'center', 'backgroundcolor', txtBg, 'margin', 1, 'fontsize', fz, 'color', color);
+%else
+%    warning('not significant, skipping');
+%end

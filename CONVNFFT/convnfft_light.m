@@ -1,4 +1,4 @@
-function A = convnfft(A, B, shape, dims, options)
+function A = convnfft_light(A, B)
 % CONVNFFT  FFT-BASED N-dimensional convolution.
 %   C = CONVNFFT(A, B) performs the N-dimensional convolution of
 %   matrices A and B. If nak = size(A,k) and nbk = size(B,k), then

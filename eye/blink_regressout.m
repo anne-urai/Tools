@@ -8,9 +8,9 @@ function [data] = blink_regressout(data, blinksmp, saccsmp, plotme, addBackSlowD
 
 % get the stuff we need
 dat.time        = data.time{1};
-dat.pupil       = data.trial{1}(find(strcmp(data.label, 'EyePupil')==1),:);
-dat.gazex       = data.trial{1}(find(strcmp(data.label, 'EyeH')==1),:);
-dat.gazey       = data.trial{1}(find(strcmp(data.label, 'EyeV')==1),:);
+dat.pupil       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EYEPUPIL')),:);
+dat.gazex       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EYEH')),:);
+dat.gazey       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EYEV')),:);
 
 % initialize settings
 if ~exist('plotme', 'var'); plotme = true; end % plot all this stuff
@@ -192,7 +192,7 @@ if plotme,
     axis tight; box off; ylabel('+ lowfreq');
 end
 
-data.trial{1}(find(strcmp(data.label, 'EyePupil')==1),:) = newpupil;
+data.trial{1}(strfind('EYEPUPIL', data.label), :) = newpupil;
 
 end
 
