@@ -8,6 +8,8 @@ function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
     dat.gazex       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EYEH')),:);
     dat.gazey       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EYEV')),:);
     
+    padding       = 0.150; % how long before and after do we want to pad?
+    
     % get sample idx from asc
     dat.blinksmp = blinksmp;
     
@@ -15,13 +17,14 @@ function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
     if ~exist('plotme', 'var'); plotme = true; end % plot all this stuff
     
     if ~isempty(blinksmp),
+        disp('interpolating EL-defined blinks');
         
         % ====================================================== %
         % STEP 1: INTERPOLATE EL-DEFINED BLINKS
         % ====================================================== %
         
         if plotme,
-            clf;  sp1 = subplot(511); plot(dat.time,dat.pupil);
+            clf;  sp1 = subplot(511); plot(dat.time,dat.pupil, 'color', [0.5 0.5 0.5]);
             axis tight; box off; ylabel('Raw');
             set(gca, 'xtick', []);
         end
@@ -38,7 +41,6 @@ function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
         blinksmp(isnan(nanmean(blinksmp, 2)), :) = [];
         
         % pad the blinks
-        padding       = 0.150; % how long before and after do we want to pad?
         padblinksmp(:,1) = round(blinksmp(:,1) - padding * data.fsample);
         padblinksmp(:,2) = round(blinksmp(:,2) + padding * data.fsample);
         
@@ -52,28 +54,30 @@ function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
         end
         
         % also set zero datapoints to nan
-        dat.pupil(dat.pupil<10) = nan;
+        dat.pupil(dat.pupil < 10) = nan;
         
         % interpolate linearly
         dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
-            dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear', 'extrap');
+            dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
         
         % to avoid edge artefacts at the beginning and end of file, pad in seconds
-        edgepad = 1;
-        dat.pupil(1:edgepad*data.fsample)           = NaN;
-        dat.pupil(end-edgepad*data.fsample : end)   = NaN;
+        % edgepad = 1;
+        % dat.pupil(1:edgepad*data.fsample)           = NaN;
+        % dat.pupil(end-edgepad*data.fsample : end)   = NaN;
         
         % also extrapolate ends
-        dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
-            dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'nearest', 'extrap');
+        % dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
+        %    dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'nearest', 'extrap');
         
-        if plotme, sp2 = subplot(512); hold on;
+        if plotme, sp2 = subplot(511); hold on;
             % show how well this worked
-            plot(dat.time, dat.pupil);
+            plot(dat.time, dat.pupil, 'b');
             axis tight; box off; ylabel('Interp');
             set(gca, 'xtick', []);
         end
-    else
+        
+        % remove nans at the beginning and the end
+        dat.pupil(isnan(dat.pupil)) = nanmedian(dat.pupil);
         
     end
     
@@ -85,9 +89,9 @@ function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
     pupildatsmooth  = filter2(win.',dat.pupil,'same');
     
     dat.pupildiff = diff(pupildatsmooth) - mean(diff(pupildatsmooth)) / std(diff(pupildatsmooth));
-    [peaks, loc] = findpeaks(abs(dat.pupildiff), 'minpeakheight', 3*std(dat.pupildiff), 'minpeakdistance', 0.5*data.fsample);
+    [peaks, loc]  = findpeaks(abs(dat.pupildiff), 'minpeakheight', 3*std(dat.pupildiff), 'minpeakdistance', 0.5*data.fsample);
     
-    if plotme, sp3 = subplot(513);
+    if plotme, sp3 = subplot(512);
         plot(dat.time(2:end), dat.pupildiff);
         hold on; plot(dat.time(loc), peaks, 'o');
         axis tight; box off; ylabel('Peak detect');
@@ -118,6 +122,9 @@ function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
             dat.pupil(newblinksmp(b,1):newblinksmp(b,2)) = NaN;
         end
         
+        % also set the pupil to zero when there were missing data
+        dat.pupil(dat.pupil<10) = nan;
+        
         % interpolate linearly
         dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
             dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
@@ -131,12 +138,16 @@ function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
     
     % sort
     newpupil = dat.pupil;
-
+    
     % link axes
     if plotme,
         try
             linkaxes([sp1 sp2 sp3 sp4], 'x');
             set([sp1 sp2 sp3 sp4], 'tickdir', 'out');
+        catch
+                  linkaxes([sp1 sp2 sp3], 'x');
+            set([sp1 sp2 sp3], 'tickdir', 'out');
+    
         end
         xlim([-10 dat.time(end)+10]);
     end
