@@ -4,11 +4,12 @@ function convnfft_install
 %
 % Author: Bruno Luong <brunoluong@yahoo.com>
 % History
-%  Original: 16/Sept/2009
+% Original: 16/Sept/2009
 
 arch=computer('arch');
-mexopts = {'-O' '-v' ['-' arch]};
+%mexopts = {'-O'  ['-' arch]};
 % 64-bit platform
+mexopts = {};
 if ~isempty(strfind(computer(),'64'))
     mexopts(end+1) = {'-largeArrayDims'};
 end

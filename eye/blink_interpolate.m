@@ -54,7 +54,7 @@ function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
         end
         
         % also set zero datapoints to nan
-        dat.pupil(dat.pupil < 10) = nan;
+        dat.pupil(dat.pupil < -2) = nan;
         
         % interpolate linearly
         dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
@@ -88,8 +88,8 @@ function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
     win             = hanning(11);
     pupildatsmooth  = filter2(win.',dat.pupil,'same');
     
-    dat.pupildiff = diff(pupildatsmooth) - mean(diff(pupildatsmooth)) / std(diff(pupildatsmooth));
-    [peaks, loc]  = findpeaks(abs(dat.pupildiff), 'minpeakheight', 3*std(dat.pupildiff), 'minpeakdistance', 0.5*data.fsample);
+    dat.pupildiff   = diff(pupildatsmooth) - mean(diff(pupildatsmooth)) / std(diff(pupildatsmooth));
+    [peaks, loc]    = findpeaks(abs(dat.pupildiff), 'minpeakheight', 3*std(dat.pupildiff), 'minpeakdistance', 0.5*data.fsample);
     
     if plotme, sp3 = subplot(512);
         plot(dat.time(2:end), dat.pupildiff);
@@ -123,7 +123,7 @@ function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
         end
         
         % also set the pupil to zero when there were missing data
-        dat.pupil(dat.pupil<10) = nan;
+        dat.pupil(dat.pupil<nanmedian(dat.pupil)-2*nanstd(dat.pupil)) = nan;
         
         % interpolate linearly
         dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
