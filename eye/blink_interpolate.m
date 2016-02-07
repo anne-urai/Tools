@@ -52,10 +52,10 @@ function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
         for b = 1:size(padblinksmp,1),
             dat.pupil(padblinksmp(b,1):padblinksmp(b,2)) = NaN;
         end
-        
-        % also set zero datapoints to nan
-        dat.pupil(dat.pupil < -2) = nan;
-        
+
+        % also set the pupil to zero when there were missing data
+        dat.pupil(dat.pupil<nanmedian(dat.pupil)-2*nanstd(dat.pupil)) = nan;
+                
         % interpolate linearly
         dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
             dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
@@ -121,10 +121,7 @@ function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
         for b = 1:size(newblinksmp,1),
             dat.pupil(newblinksmp(b,1):newblinksmp(b,2)) = NaN;
         end
-        
-        % also set the pupil to zero when there were missing data
-        dat.pupil(dat.pupil<nanmedian(dat.pupil)-2*nanstd(dat.pupil)) = nan;
-        
+
         % interpolate linearly
         dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
             dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
@@ -145,9 +142,9 @@ function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
             linkaxes([sp1 sp2 sp3 sp4], 'x');
             set([sp1 sp2 sp3 sp4], 'tickdir', 'out');
         catch
-                  linkaxes([sp1 sp2 sp3], 'x');
+            linkaxes([sp1 sp2 sp3], 'x');
             set([sp1 sp2 sp3], 'tickdir', 'out');
-    
+            
         end
         xlim([-10 dat.time(end)+10]);
     end
