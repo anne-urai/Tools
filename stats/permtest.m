@@ -15,16 +15,17 @@ meanb = mean(b);
 triala = zeros(1, nrand);
 trialb = triala;
 alldat = [a b];
+shufdat = alldat;
 
 for irand = 1:nrand,
     
     % create a shuffling vector
     for i = 1:length(a),
-       alldat(i, :) = design(i, randperm(size(design,2)));
+       shufdat(i, :) = alldat(i, randperm(size(shufdat,2)));
     end
     
-    triala(irand) = mean(alldat(:, 1));
-    trialb(irand) = mean(alldat(:, 2));
+    triala(irand) = mean(shufdat(:, 1));
+    trialb(irand) = mean(shufdat(:, 2));
     
 end
 

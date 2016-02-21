@@ -1,0 +1,3 @@
+function dbq
+dbquit;
+end
