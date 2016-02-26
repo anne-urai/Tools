@@ -88,16 +88,17 @@ dat.pupildiff   = diff(pupildatsmooth) - mean(diff(pupildatsmooth)) / std(diff(p
 
 if plotme, sp2 = subplot(412);
     plot(dat.time(2:end), dat.pupildiff);
-    hold on; plot(dat.time(loc), peaks, 'o');
-    axis tight; box off; ylabel('Peaks');
-    set(gca, 'xtick', []);
+    hold on; plot(dat.time(loc), peaks, '.');
+    box off; ylabel('Peaks');
+    set(gca, 'xtick', []); ylim([-500 500]);
+    sp3 = subplot(413); hold on;
 end
 
 if ~isempty(peaks),
     
-    if plotme, sp3 = subplot(413);
+    if plotme,
         plot(dat.time, dat.pupil, 'color', [0.5 0.5 0.5]);
-        hold on; 
+        hold on;
     end
     
     % convert peaks into blinksmp
@@ -130,23 +131,22 @@ if ~isempty(peaks),
     % interpolate linearly
     dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
         dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
-    
 end
 
 % remove remaining nans (probably at the end)
 dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
     dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'nearest', 'extrap');
-
-% sort
 newpupil = dat.pupil;
 
 % link axes
 if plotme,
-    plot(dat.time, dat.pupil, 'b'); 
+    plot(dat.time, dat.pupil, 'b');
     ylim([min(dat.pupil)*0.9 max(dat.pupil)*1.1]);
     box off; ylabel('Clean');
-    linkaxes([sp1 sp2 sp3], 'x');
-    set([sp1 sp2 sp3], 'tickdir', 'out');
+    try
+        linkaxes([sp1 sp2 sp3], 'x');
+        set([sp1 sp2 sp3], 'tickdir', 'out');
+    end
     xlim([dat.time(1)-10 dat.time(end)+10]);
 end
 
