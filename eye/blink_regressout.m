@@ -1,4 +1,4 @@
-function [data] = blink_regressout(data, blinksmp, saccsmp, plotme, addBackSlowDrift)
+function [newpupil] = blink_regressout(data, blinksmp, saccsmp, plotme, addBackSlowDrift)
 % method by Knapen, de Gee et al. 
 % estimate canonical responses to blinks and saccades, then take those out
 % of the pupil timecourse
@@ -9,8 +9,6 @@ function [data] = blink_regressout(data, blinksmp, saccsmp, plotme, addBackSlowD
 % get the stuff we need
 dat.time        = data.time{1};
 dat.pupil       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EYEPUPIL')),:);
-dat.gazex       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EYEH')),:);
-dat.gazey       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EYEV')),:);
 
 % initialize settings
 if ~exist('plotme', 'var'); plotme = true; end % plot all this stuff
@@ -192,8 +190,6 @@ if plotme,
     axis tight; box off; ylabel('+ lowfreq');
 end
 
-data.trial{1}(strfind('EYEPUPIL', data.label), :) = newpupil;
-
 end
 
 
@@ -213,42 +209,11 @@ switch type
         disp('fitting saccade double gamma');
 end
 
-if 1,
-    doublegamma = @(s1, s2, n1, n2, tmax1, tmax2, x) ...
-        s1 * (x.^n1) .* exp((-n1.*x) ./ tmax1) + s2 * (x.^n2) .* exp((-n2.*x) ./ tmax2);
-    doublegamma = fittype(doublegamma);
-    fitobj = fit(x, y, doublegamma, ...
-        'startpoint', startpt, 'lower', lb, 'upper', ub);
-    irf = feval(fitobj, x);
-    
-else
-    
-    fun = @(params) doublegamma_ls(data, params);
-    
-    [xfinal,ffinal,exitflag] = rmsearch(fun,'fmincon', ...
-        startpt,lb, ub);
-    
-    % check if this went well
-    [~, bestfit]  = min(ffinal);
-    assert(exitflag(bestfit) > 0);
-    params = xfinal(bestfit, :);
-    
-    % evaluate the irf
-    x = 1:length(data);
-    irf = params(1) * (x.^params(3)) .* exp((-params(3).*x) ./ params(5)) + params(2) * (x.^params(4)) .* exp((-params(4).*x) ./ params(6));
-end
-end
-
-
-function sse = doublegamma_ls(data, params)
-
-x = 1:length(data);
-
-% define the function
-y = params(1) * (x.^params(3)) .* exp((-params(3).*x) ./ params(5)) + params(2) * (x.^params(4)) .* exp((-params(4).*x) ./ params(6));
-
-% evaluate it
-sse = sum((data' - y) .^2); % sum of squared errors
+doublegamma = @(s1, s2, n1, n2, tmax1, tmax2, x) ...
+    s1 * (x.^n1) .* exp((-n1.*x) ./ tmax1) + s2 * (x.^n2) .* exp((-n2.*x) ./ tmax2);
+doublegamma = fittype(doublegamma);
+fitobj = fit(x, y, doublegamma, ...
+    'startpoint', startpt, 'lower', lb, 'upper', ub);
+irf = feval(fitobj, x);
 
 end
-
