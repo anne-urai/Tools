@@ -1,26 +1,27 @@
 function [data] = blink_regressout(data, blinksmp, saccsmp, plotme, addBackSlowDrift)
-% method by Knapen, de Gee et al. 
+% method by Knapen, de Gee et al.
 % estimate canonical responses to blinks and saccades, then take those out
 % of the pupil timecourse
 % requires FieldTrip-style data structure before epoching
+% optio
 %
 % Anne Urai, 2015
 
 % get the stuff we need
 dat.time        = data.time{1};
-dat.pupil       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EYEPUPIL')),:);
-dat.gazex       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EYEH')),:);
-dat.gazey       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EYEV')),:);
+dat.pupil       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EyePupil')),:);
+dat.gazex       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EyeH')),:);
+dat.gazey       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EyeV')),:);
 
 % initialize settings
-if ~exist('plotme', 'var'); plotme = true; end % plot all this stuff
+if ~exist('plotme', 'var'); plotme = true; clf; end % plot all this stuff
 
 % ====================================================== %
 % STEP 1: BAND-PASS FILTER
 % ====================================================== %
 
 if plotme,
-    clf;  subplot(611); plot(dat.time,dat.pupil);
+    subplot(611); plot(dat.time,dat.pupil);
     axis tight; box off; ylabel('Interp');
     set(gca, 'xtick', []);
 end
@@ -176,7 +177,7 @@ if plotme,
 end
 
 % ====================================================== %
-% STEP 7: ADD BACK THE SLOW DRIFT
+% STEP 7: ADD BACK THE SLOW DRIFT 
 % ====================================================== %
 
 if addBackSlowDrift,
@@ -192,10 +193,10 @@ if plotme,
     axis tight; box off; ylabel('+ lowfreq');
 end
 
-data.trial{1}(strfind('EYEPUPIL', data.label), :) = newpupil;
+% put back
+data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EyePupil')),:) = newpupil;
 
 end
-
 
 function irf = doublegamma_fit(x, y, type)
 % return the sum of squared error of the fit
@@ -213,42 +214,10 @@ switch type
         disp('fitting saccade double gamma');
 end
 
-if 1,
-    doublegamma = @(s1, s2, n1, n2, tmax1, tmax2, x) ...
-        s1 * (x.^n1) .* exp((-n1.*x) ./ tmax1) + s2 * (x.^n2) .* exp((-n2.*x) ./ tmax2);
-    doublegamma = fittype(doublegamma);
-    fitobj = fit(x, y, doublegamma, ...
-        'startpoint', startpt, 'lower', lb, 'upper', ub);
-    irf = feval(fitobj, x);
-    
-else
-    
-    fun = @(params) doublegamma_ls(data, params);
-    
-    [xfinal,ffinal,exitflag] = rmsearch(fun,'fmincon', ...
-        startpt,lb, ub);
-    
-    % check if this went well
-    [~, bestfit]  = min(ffinal);
-    assert(exitflag(bestfit) > 0);
-    params = xfinal(bestfit, :);
-    
-    % evaluate the irf
-    x = 1:length(data);
-    irf = params(1) * (x.^params(3)) .* exp((-params(3).*x) ./ params(5)) + params(2) * (x.^params(4)) .* exp((-params(4).*x) ./ params(6));
+doublegamma = @(s1, s2, n1, n2, tmax1, tmax2, x) ...
+    s1 * (x.^n1) .* exp((-n1.*x) ./ tmax1) + s2 * (x.^n2) .* exp((-n2.*x) ./ tmax2);
+doublegamma = fittype(doublegamma);
+fitobj = fit(x, y, doublegamma, ...
+    'startpoint', startpt, 'lower', lb, 'upper', ub);
+irf = feval(fitobj, x);
 end
-end
-
-
-function sse = doublegamma_ls(data, params)
-
-x = 1:length(data);
-
-% define the function
-y = params(1) * (x.^params(3)) .* exp((-params(3).*x) ./ params(5)) + params(2) * (x.^params(4)) .* exp((-params(4).*x) ./ params(6));
-
-% evaluate it
-sse = sum((data' - y) .^2); % sum of squared errors
-
-end
-
