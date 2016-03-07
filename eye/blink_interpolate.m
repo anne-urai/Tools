@@ -4,9 +4,9 @@ function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
 
 % get the stuff we need
 dat.time        = data.time{1};
-dat.pupil       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EyePupil')),:);
-dat.gazex       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EyeH')),:);
-dat.gazey       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EyeV')),:);
+dat.pupil       = data.trial{1}(~cellfun(@isempty, strfind(lower(data.label), 'eyepupil')),:);
+dat.gazex       = data.trial{1}(~cellfun(@isempty, strfind(lower(data.label), 'eyeh')),:);
+dat.gazey       = data.trial{1}(~cellfun(@isempty, strfind(lower(data.label), 'eyev')),:);
 padding         = 0.150; % how long before and after do we want to pad?
 dat.blinksmp    = blinksmp; % get sample idx from asc
 
