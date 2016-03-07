@@ -4,11 +4,11 @@ function [newpupil] = blink_regressout(data, blinksmp, saccsmp, plotme, addBackS
 % of the pupil timecourse
 % requires FieldTrip-style data structure before epoching
 %
-% Anne Urai, 2015
+% Anne Urai, 2016
 
 % get the stuff we need
 dat.time        = data.time{1};
-dat.pupil       = data.trial{1}(~cellfun(@isempty, strfind(data.label, 'EYEPUPIL')),:);
+dat.pupil       = data.trial{1}(~cellfun(@isempty, strfind(lower(data.label), 'eyepupil')),:);
 
 % initialize settings
 if ~exist('plotme', 'var'); plotme = true; end % plot all this stuff
