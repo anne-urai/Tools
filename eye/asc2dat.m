@@ -38,7 +38,6 @@ if data.fsample ~= 1000,
 end
 
 % parse blinks
-
 blinktimes = cellfun(@regexp, asc.eblink, ...
     repmat({'\d*'}, length(asc.eblink), 1), repmat({'match'}, length(asc.eblink), 1), ...
     'UniformOutput', false); % parse blinktimes from ascdat

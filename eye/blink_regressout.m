@@ -44,8 +44,12 @@ end
 % STEP 2: DOWNSAMPLING
 % ====================================================== %
 
+% remove idx outside range
+% blinksmp(sum((blinksmp > length(dat.pupil)), 2) > 0, :) = [];
+% saccsmp(sum((saccsmp > length(dat.pupil)), 2) > 0, :) = [];
+
 newFs = 10;
-downsmp = resample(dat.bpfilt,newFs, data.fsample);
+downsmp = resample(dat.bpfilt, newFs, data.fsample);
 
 % also downsample the sample idx for blinks and saccades
 newblinksmp = round(blinksmp * (newFs/data.fsample));
@@ -131,7 +135,7 @@ samplelogical(offset)   = 1; % put 1s at these events
 
 % convolve
 reg1 = cconv(samplelogical, blinkIRFup);
-reg1 = reg1(1:length(samplelogical))';
+reg1 = reg1(1:length(dat.pupil))';
 
 % SAME FOR SACCADES
 % upsample to the sample rate of the data
@@ -145,7 +149,7 @@ samplelogical(offset)   = 1; % put 1s at these events
 
 % convolve
 reg2 = cconv(samplelogical, saccIRFup);
-reg2 = reg2(1:length(samplelogical))';
+reg2 = reg2(1:length(dat.pupil))';
 
 % ====================================================== %
 % STEP 6: REGRESS OUT THOSE RESPONSES FROM DATA
