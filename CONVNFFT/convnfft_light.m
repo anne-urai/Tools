@@ -34,6 +34,5 @@ A = ifftn(A);
 
 % truncate the results
 A = A(subs{:});
-A = convn(A,B, 'same');
 
 end % convnfft
