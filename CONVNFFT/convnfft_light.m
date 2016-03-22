@@ -17,7 +17,7 @@ subs = arrayfun(ifun, size(A), size(B), 'uniformoutput', 0);
 % compute the FFT length
 l = m+n-1;
 
-% find the next fast size for the fft will be faster!
+% find the next fast size for the fft that will be fast, but not that much bigger
 % http://www.univie.ac.at/nuhag-php/mmodule/m-files/nextfastfft.m
 l2 = nextfastfft(l);
 
@@ -34,5 +34,6 @@ A = ifftn(A);
 
 % truncate the results
 A = A(subs{:});
+A = convn(A,B, 'same');
 
 end % convnfft
