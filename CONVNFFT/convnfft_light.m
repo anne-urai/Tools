@@ -2,7 +2,7 @@ function A = convnfft_light(A,B)
 % light version of
 % http://nl.mathworks.com/matlabcentral/fileexchange/24504-fft-based-convolution
 
-% AEU: eliminate loop
+% eliminate loop
 m = size(A);
 n = size(B);
 
@@ -21,16 +21,8 @@ l = m+n-1;
 % http://www.univie.ac.at/nuhag-php/mmodule/m-files/nextfastfft.m
 l2 = nextfastfft(l);
 
-% fftn is faster than looping
-A = fftn(A, l2);
-B = fftn(B, l2);
-
-% multiply in frequency domain
-A = A.*B;
-clear B
-
-% back to time domain
-A = ifftn(A);
+% fftn in 1 step
+A = ifftn(fftn(A, l2) .* fftn(B, l2));
 
 % truncate the results
 A = A(subs{:});
