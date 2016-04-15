@@ -35,7 +35,7 @@ for q = 1:length(qs) + 1,
     % nicer: get bin centres
     % [~, idx] = min(abs(centres-x));
     
-    assert(~isempty(findtrls), 'no trials found in this bin');
+    % assert(~isempty(findtrls), 'no trials found in this bin');
     
     % find the mean x and y 
     binnedx(q) = mean(x(findtrls));

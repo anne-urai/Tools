@@ -1,6 +1,6 @@
 function [b,idx,outliers] = deleteoutliers(a,alpha,rep);
 % [B, IDX, OUTLIERS] = DELETEOUTLIERS(A, ALPHA, REP)
-% 
+%
 % For input vector A, returns a vector B with outliers (at the significance
 % level alpha) removed. Also, optional output argument idx returns the
 % indices in A of outlier values. Optional output argument outliers returns
@@ -8,7 +8,7 @@ function [b,idx,outliers] = deleteoutliers(a,alpha,rep);
 %
 % ALPHA is the significance level for determination of outliers. If not
 % provided, alpha defaults to 0.05.
-% 
+%
 % REP is an optional argument that forces the replacement of removed
 % elements with NaNs to presereve the length of a. (Thanks for the
 % suggestion, Urs.)
@@ -18,11 +18,11 @@ function [b,idx,outliers] = deleteoutliers(a,alpha,rep);
 % highest value, or the lowest, and is the value that is furthest
 % from the sample mean. Infinite elements are discarded if rep is 0, or
 % replaced with NaNs if rep is 1 (thanks again, Urs).
-% 
+%
 % Appropriate application of the test requires that data can be reasonably
 % approximated by a normal distribution. For reference, see:
 % 1) "Procedures for Detecting Outlying Observations in Samples," by F.E.
-%    Grubbs; Technometrics, 11-1:1--21; Feb., 1969, and 
+%    Grubbs; Technometrics, 11-1:1--21; Feb., 1969, and
 % 2) _Outliers in Statistical Data_, by V. Barnett and
 %    T. Lewis; Wiley Series in Probability and Mathematical Statistics;
 %    John Wiley & Sons; Chichester, 1994.
@@ -50,20 +50,20 @@ function [b,idx,outliers] = deleteoutliers(a,alpha,rep);
 %    (Thanks to Valeri Makarov for modification suggestion.)
 
 if nargin == 1
-	alpha = 0.05;
-	rep = 0;
+    alpha = 0.05;
+    rep = 0;
 elseif nargin == 2
-	rep = 0;
+    rep = 0;
 elseif nargin == 3
-	if ~ismember(rep,[0 1])
-		error('Please enter a 1 or a 0 for optional argument rep.')
-	end
+    if ~ismember(rep,[0 1])
+        error('Please enter a 1 or a 0 for optional argument rep.')
+    end
 elseif nargin > 3
-	error('Requires 1,2, or 3 input arguments.');
+    error('Requires 1,2, or 3 input arguments.');
 end
 
 if isempty(alpha)
-	alpha = 0.05;
+    alpha = 0.05;
 end
 
 b = a;
@@ -72,27 +72,27 @@ b(isinf(a)) = NaN;
 %Delete outliers:
 outlier = 1;
 while outlier
-	tmp = b(~isnan(b));
-	meanval = mean(tmp);
-	maxval = tmp(find(abs(tmp-mean(tmp))==max(abs(tmp-mean(tmp)))));
-	maxval = maxval(1);
-	sdval = std(tmp);
-	tn = abs((maxval-meanval)/sdval);
-	critval = zcritical(alpha,length(tmp));
-	outlier = tn > critval;
-	if outlier
-		tmp = find(a == maxval);
-		b(tmp) = NaN;
-	end
+    tmp = b(~isnan(b));
+    meanval = mean(tmp);
+    maxval = tmp(find(abs(tmp-mean(tmp))==max(abs(tmp-mean(tmp)))));
+    maxval = maxval(1);
+    sdval = std(tmp);
+    tn = abs((maxval-meanval)/sdval);
+    critval = zcritical(alpha,length(tmp));
+    outlier = tn > critval;
+    if outlier
+        tmp = find(a == maxval);
+        b(tmp) = NaN;
+    end
 end
 if nargout >= 2
-	idx = find(isnan(b));
+    idx = find(isnan(b));
 end
 if nargout > 2
-	outliers = a(idx);
+    outliers = a(idx);
 end
 if ~rep
-	b=b(~isnan(b));
+    b=b(~isnan(b));
 end
 return
 

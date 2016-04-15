@@ -13,9 +13,8 @@ end
 hold on;
 if numel(xpos) > 1,
     % plot the horizontal line
-    newY = ypos+0.01*range(get(gca, 'ylim'));
     p = plot([xpos(1), xpos(2)], ...
-        [newY newY], '-', 'LineWidth', 0.5, 'color', color);
+        [ypos ypos], '-', 'LineWidth', 0.5, 'color', color);
     
     %     % also add small downward ticks
     %     switch whichWay
