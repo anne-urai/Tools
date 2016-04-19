@@ -1,6 +1,6 @@
 function [dprime, crit] = dprime(stim, resp)
 
-% make sure identities are matching
+% use only 2 identities, however this is coded
 stim(stim~=1) = -1;
 resp(resp~=1) = -1;
 
@@ -17,4 +17,5 @@ elseif Pfa == 1, Pfa = .99; end
 % compute dprime and criterion
 dprime = norminv(Phit) - norminv(Pfa);
 crit   = -.5 * (norminv(Phit) + norminv(Pfa));
+
 end
