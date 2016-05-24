@@ -1,17 +1,19 @@
-function [newpupil] = blink_regressout(data, blinksmp, saccsmp, plotme, addBackSlowDrift)
-% method by Knapen, de Gee et al. 
+function [newpupil] = blink_regressout(pupildata, fsample, blinksmp, saccsmp, plotme, addBackSlowDrift)
+% method by Knapen, de Gee et al. (2016)
+% http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0155574 
 % estimate canonical responses to blinks and saccades, then take those out
 % of the pupil timecourse
-% requires FieldTrip-style data structure before epoching
 %
 % Anne Urai, 2016
 
-% get the stuff we need
-dat.time        = data.time{1};
-dat.pupil       = data.trial{1}(~cellfun(@isempty, strfind(lower(data.label), 'eyepupil')),:);
-
 % initialize settings
 if ~exist('plotme', 'var'); plotme = true; end % plot all this stuff
+if ~exist('addBackSlowDrift', 'var'); addBackSlowDrift = true; 
+disp('adding back slow drift at the end'); end % plot all this stuff
+
+% get the stuff we need
+dat.pupil       = pupildata;
+dat.time        = [1: length(pupildata)] ./ fsample; % time axis
 
 % ====================================================== %
 % STEP 1: BAND-PASS FILTER
@@ -25,13 +27,13 @@ end
 
 % filter the pupil timecourse twice
 % first, get rid of slow drift
-[b,a] = butter(2, 0.01 / data.fsample, 'high');
+[b,a]      = butter(2, 0.01 / fsample, 'high');
 dat.hpfilt = filtfilt(b,a, dat.pupil); % filter with zero lag
 % get residuals for later
 dat.lowfreqresid = dat.pupil - dat.hpfilt;
 
 % also get rid of fast instrument noise
-[b,a] = butter(2, 10 / data.fsample, 'low');
+[b,a] = butter(2, 10 / fsample, 'low');
 dat.bpfilt = filtfilt(b,a, dat.hpfilt);
 
 if plotme,
@@ -49,11 +51,11 @@ end
 % saccsmp(sum((saccsmp > length(dat.pupil)), 2) > 0, :) = [];
 
 newFs = 10;
-downsmp = resample(dat.bpfilt, newFs, data.fsample);
+downsmp = resample(dat.bpfilt, newFs, fsample);
 
 % also downsample the sample idx for blinks and saccades
-newblinksmp = round(blinksmp * (newFs/data.fsample));
-newsaccsmp  = round(saccsmp * (newFs/data.fsample));
+newblinksmp = round(blinksmp * (newFs/fsample));
+newsaccsmp  = round(saccsmp * (newFs/fsample));
 
 % ====================================================== %
 % STEP 3: DECONVOLUTION
@@ -125,11 +127,11 @@ end
 % ====================================================== %
 
 % upsample to the sample rate of the data
-blinkIRFup = resample(blinkIRF, data.fsample, newFs);
+blinkIRFup = resample(blinkIRF, fsample, newFs);
 
 % convolve with timepoints of events in original data
 samplelogical = zeros(length(dat.pupil), 1);
-offset = round(blinksmp(:, 2) + imp(1)*data.fsample);
+offset = round(blinksmp(:, 2) + imp(1)*fsample);
 offset(offset<1) = []; % remove those that we cant catch so early
 samplelogical(offset)   = 1; % put 1s at these events
 
@@ -139,11 +141,11 @@ reg1 = reg1(1:length(dat.pupil))';
 
 % SAME FOR SACCADES
 % upsample to the sample rate of the data
-saccIRFup = resample(saccIRF, data.fsample, newFs);
+saccIRFup = resample(saccIRF, fsample, newFs);
 
 % convolve with timepoints of events in original data
 samplelogical = zeros(length(dat.pupil), 1);
-offset = round(saccsmp(:, 2) + imp(1)*data.fsample);
+offset = round(saccsmp(:, 2) + imp(1)*fsample);
 offset(offset<1) = []; % remove those that we cant catch so early
 samplelogical(offset)   = 1; % put 1s at these events
 
@@ -195,7 +197,6 @@ if plotme,
 end
 
 end
-
 
 function irf = doublegamma_fit(x, y, type)
 % return the sum of squared error of the fit
