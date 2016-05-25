@@ -1,0 +1,80 @@
+porting of eeglab plugin 'SASICA' to fieldtrip.  Please see https://github.com/dnacombo/SASICA for original code
+
+currently only works on continous fieldtrip data
+
+----
+
+This is SASICA, a plugin to EEGlab to help you reject/select independent components based on various properties of these components.
+
+Available methods are:
+             Autocorrelation: detects noisy components with weak
+                              autocorrelation (muscle artifacts usually)
+             Focal components: detects components that are too focal and
+                              thus unlikely to correspond to neural
+                              activity (bad channel or muscle usually).
+             Focal trial activity: detects components with focal trial
+                              activity, with same algorhithm as focal
+                              components above. Results similar to trial
+                              variability.
+             Signal to noise ratio: detects components with weak signal
+                              to noise ratio between arbitrary baseline
+                              and interest time windows.
+             Dipole fit residual variance: detects components with high
+                              residual variance after subtraction of the
+                              forward dipole model. Note that the inverse
+                              dipole modeling using DIPFIT2 in EEGLAB
+                              must have been computed to use this
+                              measure.
+             EOG correlation: detects components whose time course
+                              correlates with EOG channels.
+             Bad channel correlation: detects components whose time course
+                              correlates with any channel(s).
+             ADJUST selection: use ADJUST routines to select components
+                              (see Mognon, A., Jovicich, J., Bruzzone,
+                              L., & Buiatti, M. (2011). ADJUST: An
+                              automatic EEG artifact detector based on
+                              the joint use of spatial and temporal
+                              features. Psychophysiology, 48(2), 229-240.
+                              doi:10.1111/j.1469-8986.2010.01061.x)
+             FASTER selection: use FASTER routines to select components
+                              (see Nolan, H., Whelan, R., & Reilly, R. B.
+                              (2010). FASTER: Fully Automated Statistical
+                              Thresholding for EEG artifact Rejection.
+                              Journal of Neuroscience Methods, 192(1),
+                              152-162. doi:16/j.jneumeth.2010.07.015)
+              MARA selection: use MARA classification engine to select components
+                              (see Winkler I, Haufe S, Tangermann M.
+                              2011. Automatic Classification of
+                              Artifactual ICA-Components for Artifact
+                              Removal in EEG Signals. Behavioral and
+                              Brain Functions. 7:30.)
+
+
+ If you use this program in your research, please cite the following
+ article: 
+   Chaumon M, Bishop DV, Busch NA. A Practical Guide to the Selection of
+   Independent Components of the Electroencephalogram for Artifact
+   Correction. Journal of neuroscience methods. 2015  
+
+
+ SASICA is a software that helps select independent components of
+   the electroencephalogram based on various signal measures.
+     Copyright (C) 2014  Maximilien Chaumon
+
+     This program is free software: you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+     the Free Software Foundation, either version 3 of the License, or
+     (at your option) any later version.
+
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+
+     You should have received a copy of the GNU General Public License
+     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+ Some of the measures used here are based on http://bishoptechbits.blogspot.com/2011/05/automated-removal-of-independent.html
+
+
+
