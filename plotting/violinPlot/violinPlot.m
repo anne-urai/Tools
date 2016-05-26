@@ -1,4 +1,4 @@
-function handles = distributionPlot(varargin)
+function handles = violinPlot(varargin)
 %DISTRIBUTIONPLOT creates violin plots for convenient visualization of multiple distributions
 %
 % SYNOPSIS: handles = distributionPlot(data,propertyName,propertyValue,...)
@@ -253,26 +253,25 @@ function handles = distributionPlot(varargin)
 %====================================
 
 % set defaults
-def.xNames = [];
-def.showMM = 4; % only show mean
-def.distWidth = 0.9;
-def.histOpt = 1;
-def.divFactor = [25,2,1];
-def.invert = false;
-def.colormap = [];
-def.color = [0.8 0.8 0.8];
-def.addSpread = false;
-def.globalNorm = false;
-def.variableWidth = true;
-def.groups = [];
-def.yLabel = '';
-def.xValues = '';
-def.xMode = 'manual';
-def.histOri = 'center';
-def.xyOri = 'normal';
-def.widthDiv = [1 1];
-isHistogram = false; %# this parameter is not set by input
-
+def.xNames          = [];
+def.showMM          = 7; % boxplot
+def.distWidth       = 0.9;
+def.histOpt         = 1;
+def.divFactor       = [25,2,1];
+def.invert          = false;
+def.colormap        = [];
+def.color           = [0.8 0.8 0.8];
+def.addSpread       = false;
+def.globalNorm      = false;
+def.variableWidth   = true;
+def.groups          = [];
+def.yLabel          = '';
+def.xValues         = '';
+def.xMode           = 'manual';
+def.histOri         = 'center';
+def.xyOri           = 'normal';
+def.widthDiv        = [1 1];
+isHistogram         = false; %# this parameter is not set by input
 
 if nargin == 0 || isempty(varargin{1})
     error('not enough input arguments')
@@ -285,8 +284,6 @@ if ~iscell(varargin{1}) && isscalar(varargin{1}) == 1 && ...
     data = varargin{2};
     varargin(1:2) = [];
     newAx = false;
-    
-    
 else
     ah = gca;
     data = varargin{1};
@@ -350,18 +347,16 @@ if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstruct(varargin{1})
     parserObj.addOptional('yLabel',def.yLabel);
     parserObj.addOptional('color',def.color);
     
-    
     parserObj.parse(varargin{:});
     opt = parserObj.Results;
-    % fill in defaults that are not supported in the old version of the
-    % code
-    opt.colormap = [];
-    opt.variableWidth = true;
-    opt.histOri = 'center';
-    opt.xValues = [];
-    opt.xMode = 'auto';
-    opt.xyOri = 'normal';
-    opt.widthDiv = [1 1];
+    % fill in defaults that are not supported in the old version of the code
+    opt.colormap        = [];
+    opt.variableWidth   = true;
+    opt.histOri         = 'center';
+    opt.xValues         = [];
+    opt.xMode           = 'auto';
+    opt.xyOri           = 'normal';
+    opt.widthDiv        = [1 1];
     
     % overwrite empties with defaults - inputParser considers empty to be a
     % valid input.
@@ -371,7 +366,6 @@ if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstruct(varargin{1})
             opt.(fn{1}) = def.(fn{1});
         end
     end
-    
     
     % fix a few parameters
     if opt.distWidth > 1
@@ -387,14 +381,12 @@ if ~isempty(varargin) && ~ischar(varargin{1}) && ~isstruct(varargin{1})
     if ~isempty(opt.xNames)
         opt.xMode = 'manual';
     end
-    
-    
+
 else
     defNames = fieldnames(def);
     for dn = defNames(:)'
         parserObj.addParamValue(dn{1},def.(dn{1}));
     end
-    
     
     parserObj.parse(varargin{:});
     opt = parserObj.Results;
@@ -421,10 +413,6 @@ else
     if ~ischar(opt.xyOri) || ~any(ismember(opt.xyOri,{'normal','flipped'}))
         error('option xyOri must be either ''normal'' or ''flipped'' (is ''%s'')',opt.xyOri);
     end
-    
-    
-    
-    
 end
 % common checks
 
@@ -448,8 +436,6 @@ if isHistogram
         opt.yLabel = 'counts';
     end
 end
-
-
 
 % check colors/colormaps: do we need to expand colormap?
 if ~iscell(opt.colormap)
@@ -476,7 +462,6 @@ if ~opt.variableWidth
             cmap(:,rgb) = linspace(1,endColor(rgb),128);
         end
         opt.colormap{iMissing} = cmap;
-        
     end
 end
 
@@ -499,7 +484,6 @@ if any(colormapLength>0)
         colormapOffset = [0;cumsum(colormapLength(1:end-1))];
         singleMap = false;
     end
-    
 else
     
     colormapLength = zeros(nData,1);
@@ -511,7 +495,6 @@ else
     end
 end
 
-
 % set hold on
 holdState = get(ah,'NextPlot');
 set(ah,'NextPlot','add');
@@ -521,12 +504,8 @@ if newAx && opt.invert
     set(ah,'Color','k')
 end
 
-%===================================
-
-
-
-%===================================
-%% PLOT DISTRIBUTIONS
+%% ===================================
+% PLOT DISTRIBUTIONS
 %===================================
 
 % assign output
@@ -553,9 +532,9 @@ plotData = cell(nData,2);
 % loop through data. Prepare patch input, then draw patch into gca
 for iData = 1:nData
     currentData = data{iData};
+    
     % only plot if there is some finite data
     if ~isempty(currentData(:)) && any(isfinite(currentData(:)))
-        
         switch floor(opt.histOpt)
             case 0
                 % use hist
@@ -563,7 +542,6 @@ for iData = 1:nData
                 
             case 1
                 % use ksdensity
-                
                 if opt.histOpt == 1.1
                     % use histogram to estimate kernel
                     [dummy,x] = histogram(currentData); %#ok<ASGLU>
@@ -631,7 +609,6 @@ switch opt.globalNorm
         xNorm(goodData) = cellfun(@max,plotData(goodData,1));
 end
 
-
 for iData = goodData'
     
     % find current data again
@@ -683,19 +660,18 @@ for iData = goodData'
     % add patch
     vertices = [xArray(:), yArray(:)]; % all the points
     faces    = reshape(1:numel(yArray),4,[])'; % connect them into one object
-     
-    % AEU: make into one large patch, so that this can have an edgecolor
-    vertices(3:4:end, :) = [];
-    vertices(3:3:end, :) = [];
     
-    faces   = 1:length(vertices);
-    faces1  = faces(1:2:end)';
-    faces2  = flipud(faces(2:2:end)');
-    % faces3  = faces(3:4:end)';
-    % faces4  = flipud(faces(4:4:end)');
-    faces   = [faces1' faces2'];
-  %  assert(1==0);
-
+    if floor(opt.histOpt) == 1,
+        % AEU: make into one large patch, so that this can have an edgecolor
+        vertices(3:4:end, :) = [];
+        vertices(3:3:end, :) = [];
+        
+        faces   = 1:length(vertices);
+        faces1  = faces(1:2:end)';
+        faces2  = flipud(faces(2:2:end)');
+        faces   = [faces1' faces2'];
+    end
+    
     if colormapLength(iData) == 0
         colorOpt = {'FaceColor',opt.color{iData}};
     else
@@ -713,12 +689,20 @@ for iData = goodData'
             colorOpt = {'FaceVertexCData',idx'+colormapOffset(iData),'CDataMapping','direct','FaceColor','flat'};
         end
     end
-   
+    
+    % only use a boundary for some types
+    if floor(opt.histOpt) == 1,
+        colorOpt = [colorOpt {'EdgeColor', 'k'}];
+    else
+        colorOpt = [colorOpt {'EdgeColor', 'none'}];
+    end
+    
+    % this does the actual plotting
     switch opt.xyOri
         case 'normal'
-            hh(iData)= patch('Vertices',vertices,'Faces',faces,'Parent',ah,colorOpt{:},'EdgeColor','k');
+            hh(iData)= patch('Vertices',vertices,'Faces',faces,'Parent',ah,colorOpt{:});
         case 'flipped'
-            hh(iData)= patch('Vertices',vertices(:,[2,1]),'Faces',faces,'Parent',ah,colorOpt{:},'EdgeColor','none');
+            hh(iData)= patch('Vertices',vertices(:,[2,1]),'Faces',faces,'Parent',ah,colorOpt{:});
     end
     
     if opt.showMM > 0
@@ -788,46 +772,64 @@ if opt.showMM
     % plot mean, median. Mean is filled red circle, median is green square
     % I don't know of a very clever way to flip xy and keep everything
     % readable, thus it'll be copy-paste
+    
+    % find a good markersize depending on plot size
+    set(ah, 'units', 'normalized');
+    axpos = get(ah, 'position');
+    markersz = 15 * axpos(3);
+    
     switch opt.xyOri
         case 'normal'
             if any(opt.showMM==[1,2])
-                mh = plot(ah,opt.xValues+xOffset,m,'+k','Color','k','MarkerSize',12);
+                % mean
+                mh = plot(ah,opt.xValues+xOffset,m,'o','markerfacecolor','w','MarkerSize',markersz, 'markeredgecolor', 'k');
             end
             if any(opt.showMM==[1,3])
-                mdh = plot(ah,opt.xValues+xOffset,md,'sk','MarkerSize',12);
+                % median
+                mdh = plot(ah,opt.xValues+xOffset,md,'^k','MarkerSize',markersz, 'markerfacecolor', 'w', 'markeredgecolor', 'k');
             end
             if opt.showMM == 4
-                mh = plot(ah,opt.xValues+xOffset,m,'+k','Color','k','MarkerSize',12);
                 mdh = myErrorbar(ah,opt.xValues+xOffset,m,sem);
+                mh = plot(ah,opt.xValues+xOffset,m,'o','markerfacecolor','w','MarkerSize',markersz, 'markeredgecolor', 'k');
             end
             if opt.showMM == 5
-                mh = plot(ah,opt.xValues+xOffset,m,'+k','Color','k','MarkerSize',12);
                 mdh = myErrorbar(ah,opt.xValues+xOffset,m,sd);
+                mh = plot(ah,opt.xValues+xOffset,m,'o','markerfacecolor','w','MarkerSize',markersz, 'markeredgecolor', 'k');
             end
             if opt.showMM == 6
                 mdh(1,:) = plot(ah,squeeze(md(:,1,2:3))',repmat(md(:,1,1)',2,1),'color','k','lineWidth',2);%,'lineStyle','--');
                 mdh(2,:) = plot(ah,squeeze(md(:,2,2:3))',repmat(md(:,2,1)',2,1),'color','k','lineWidth',1);%,'lineStyle','--');
                 mdh(3,:) = plot(ah,squeeze(md(:,3,2:3))',repmat(md(:,3,1)',2,1),'color','k','lineWidth',1);%,'lineStyle','--');
             end
+            if opt.showMM == 7 % boxplot
+               % assert(1==0);
+                boxplot(ah, currentData, 'PlotStyle', 'compact', 'color', 'k', 'MedianStyle', 'target');
+                % mdh = plot(ah,opt.xValues+xOffset, md, 'o', 'MarkerSize',markersz, 'markerfacecolor', 'w', 'color', 'k');
+            end
         case 'flipped'
             if any(opt.showMM==[1,2])
-                mh = plot(ah,m,opt.xValues+xOffset,'+r','Color','k','MarkerSize',12);
+                mh = plot(ah,m,opt.xValues+xOffset,'+r','Color','k','MarkerSize',markersz);
             end
             if any(opt.showMM==[1,3])
-                mdh = plot(ah,md,opt.xValues+xOffset,'sg','MarkerSize',12);
+                mdh = plot(ah,md,opt.xValues+xOffset,'sg','MarkerSize',markersz);
             end
             if opt.showMM == 4
-                mh = plot(ah,m,opt.xValues+xOffset,'+r','Color','k','MarkerSize',12);
+                mh = plot(ah,m,opt.xValues+xOffset,'+r','Color','k','MarkerSize',markersz);
                 mdh = myErrorbar(ah,m,opt.xValues+xOffset,[sem,NaN(size(sem))]);
             end
             if opt.showMM == 5
-                mh = plot(ah,m,opt.xValues+xOffset,'+r','Color','k','MarkerSize',12);
+                mh = plot(ah,m,opt.xValues+xOffset,'+r','Color','k','MarkerSize',markersz);
                 mdh = myErrorbar(ah,m,opt.xValues+xOffset,[sd,NaN(size(sd))]);
             end
             if opt.showMM == 6
                 mdh(1,:) = plot(ah,repmat(md(:,1,1)',2,1),squeeze(md(:,1,2:3))','color','k','lineWidth',2);%,'lineStyle','--');
                 mdh(2,:) = plot(ah,repmat(md(:,2,1)',2,1),squeeze(md(:,2,2:3))','color','k','lineWidth',1);%,'lineStyle','--');
                 mdh(3,:) = plot(ah,repmat(md(:,3,1)',2,1),squeeze(md(:,3,2:3))','color','k','lineWidth',1);%,'lineStyle','--');
+            end
+            if opt.showMM == 7 % boxplot
+                boxplot(ah, currentData, 'PlotStyle','compact', 'color', 'k', 'MedianStyle', 'target', 'orientation', 'horizontal');
+                % median on top
+               % mdh = plot(ah,md,opt.xValues+xOffset, 'o', 'MarkerSize',markersz, 'markerfacecolor', 'w', 'color', 'k');
             end
     end
 end
