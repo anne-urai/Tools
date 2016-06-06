@@ -32,7 +32,7 @@ else
     txtBg = 'none';
 end
 
-fz = 8;
+fz = 7;
 if pval < 1e-3
     txt = '***';
 elseif pval < 1e-2
