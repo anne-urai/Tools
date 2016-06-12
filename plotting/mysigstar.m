@@ -1,6 +1,7 @@
-function h = mysigstar(xpos, ypos, pval, color, whichWay)
+function h = mysigstar(ax, xpos, ypos, pval, color, whichWay)
 % replaces sigstar, which doesnt work anymore in matlab 2014b
 
+if ~exist('ax', 'var'); ax = gca; end
 if ~exist('color', 'var'); color = 'k'; end
 if ~exist('whichWay', 'var'), whichWay = 'down'; end
 
@@ -13,7 +14,7 @@ end
 hold on;
 if numel(xpos) > 1,
     % plot the horizontal line
-    p = plot([xpos(1), xpos(2)], ...
+    p = plot(ax, [xpos(1), xpos(2)], ...
         [ypos ypos], '-', 'LineWidth', 0.5, 'color', color);
     
     %     % also add small downward ticks
@@ -42,10 +43,12 @@ elseif pval < 0.05
 else
     % this should be smaller
     txt = 'n.s.';
+    % txt = '';
     fz = 5;
 end
 
 % draw the stars in the bar
 h = text(mean(xpos), mean(ypos), txt, ...
-    'horizontalalignment', 'center', 'backgroundcolor', txtBg, 'margin', 1, 'fontsize', fz, 'color', color);
+    'horizontalalignment', 'center', 'backgroundcolor', ...
+    txtBg, 'margin', 1, 'fontsize', fz, 'color', color, 'Parent', ax);
 end

@@ -544,7 +544,7 @@ for iData = 1:nData
                 % use ksdensity
                 if opt.histOpt == 1.1
                     % use histogram to estimate kernel
-                    [dummy,x] = histogram(currentData); %#ok<ASGLU>
+                    [dummy,x] = smoothHistogram(currentData); %#ok<ASGLU>
                     if length(x) == 1
                         % only one value. Make fixed distribution
                         dx = 0.1;
@@ -574,7 +574,7 @@ for iData = 1:nData
                 
             case 2
                 % use histogram - bar heights are counts as in hist
-                [xHist,yHist] = histogram(currentData,opt.divFactor,0);
+                [xHist,yHist] = smoothHistogram(currentData,opt.divFactor,0);
             case 99
                 % bins,counts already supplied
                 xHist = currentData(:,2)';

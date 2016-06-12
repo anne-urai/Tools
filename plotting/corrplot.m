@@ -1,16 +1,16 @@
-function [ ] = corrplot_imagesc( data, varnames1, varnames2 )
+function [ ] = corrplot( data, varnames1, varnames2 )
 % mimics the corrplot function from the econometrics toolbox, which I sadly
 % do not have. data has to be a table, and varnames the names of the variables
 % that should be correlated. if present, will use varname_cilow and varname_cihigh
 % to plot confidence intervals around each datapoint.
+%
+% data can be a table or a structure
 %
 % if 1 cell array of variable names is given, all will be correlated to all
 % if 2 cell arrays are given, they will be correlated against each other
 % input bounds, not distance from x/y!
 %
 % Anne Urai, 1 april 2015
-
-figure; set(gcf, 'DefaultAxesFontSize', 7);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % CORRELATE ALL MEASURES WITH EACH OTHER
@@ -38,7 +38,9 @@ if ~exist('varnames2', 'var'),
             
             if i == j,
                 % for autocorrelation, plot histfit
-                histogram(dat(i).mean, size(data,1), 'edgecolor', 'none');
+                h = histfit(dat(i).mean, round(length(dat(i).mean)/3));
+                set(h(1), 'edgecolor', 'none');
+                set(h(2), 'color', 'k');
                 
             elseif i < j,
                 
@@ -49,11 +51,19 @@ if ~exist('varnames2', 'var'),
                     dat(j).ci, ...
                     'ko','hhxy',0.1);
                 
-                % assert(1==0)
                 % layout
                 set(h(2),'Color',[0.8 0.8 0.8]);
                 set(h(3),'Color',[0.8 0.8 0.8]);
                 set(h(1), 'MarkerSize', 3, 'MarkerEdgeColor', linspecer(1), 'MarkerFaceColor', 'w');
+                
+                if all(dat(i).ci{1} == dat(i).ci{2}),
+                    axis tight;
+                else
+                    % find axis limits that make sense
+                    % (if leaving this out, huge CIs could obscure the datapoints)
+                    xlim([nanmin(dat(i).mean) - abs(nanmean(dat(i).mean)*0.5), nanmax(dat(i).mean) + abs(nanmean(dat(i).mean)*0.5)]);
+                    ylim([nanmin(dat(j).mean) - abs(nanmean(dat(j).mean)*0.5), nanmax(dat(j).mean) + abs(nanmean(dat(j).mean)*0.5)]);
+                end
                 
                 % test if there is a correlation
                 [coef, pval] = corr(dat(i).mean, dat(j).mean, 'type', 'Spearman', 'rows', 'pairwise');
@@ -61,13 +71,6 @@ if ~exist('varnames2', 'var'),
                 if pval < 0.05,
                     lh = lsline; set(lh, 'color', 'k');
                     title(sprintf('rho %.2f, p %.3f', coef, pval));
-                end
-                
-                % find axis limits that make sense
-                % (if leaving this out, huge CIs could obscure the datapoints)
-                try
-                    xlim([min(dat(i).mean) - abs(mean(dat(i).mean)*0.5), max(dat(i).mean) + abs(mean(dat(i).mean)*0.5)]);
-                    ylim([min(dat(j).mean) - abs(mean(dat(j).mean)*0.5), max(dat(j).mean) + abs(mean(dat(j).mean)*0.5)]);
                 end
             else
                 

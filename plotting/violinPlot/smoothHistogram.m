@@ -1,4 +1,4 @@
-function [N,X,sp] = histogram(varargin)
+function [N,X,sp] = smoothHistogram(varargin)
 % HISTOGRAM generates a histogram using the "optimal" number of bins
 %
 % If called with no output argument, histogram plots into the current axes
