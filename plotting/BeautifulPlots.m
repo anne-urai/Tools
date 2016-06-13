@@ -109,7 +109,11 @@ for yidx = 1:2,
     % into circles. If you don't need either a white outline or white
     % filling for the markers, '.' will do the job.
     
-    title(sprintf('r = %.2f, p = %.2f', rho, pval), 'fontweight', 'normal');
+    if pval < 0.001,
+        title(sprintf('r = %.2f, p < 0.001', rho), 'fontweight', 'normal');
+    else
+        title(sprintf('r = %.2f, p = %.2f', rho, pval), 'fontweight', 'normal');
+    end
     ylabel(sprintf('OtherVar %d', yidx));
     
     % put the y axis on the right, and make sure the label is rotated and
@@ -140,7 +144,11 @@ s.Position = spos;
     corr(y(:, 1), y(:, 2)), length(x), 0.05);
 
 % plot on top
-[a, h] = suplabel(sprintf('delta r = %.3f, p = %.3f', rddiff, p), 't');
+if p < 0.001,
+    [a, h] = suplabel(sprintf('delta r = %.3f, p < 0.001', rddiff), 't');
+else
+    [a, h] = suplabel(sprintf('delta r = %.3f, p = %.3f', rddiff, p), 't');
+end
 set(h, 'fontweight', 'normal');
 
 %% BARPLOTS
