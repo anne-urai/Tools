@@ -324,10 +324,6 @@ else
     xinitial = rand(par.InitialSample,par.Dim);
 end
 
-if par.InitialSample == 1,
-    xinitial = x0';
-end
-
 % generate a sample with the specified distributions
 for i = 1:par.Dim
     switch vardist(i).dist
@@ -360,6 +356,11 @@ if (par.Dim == 1)
     elseif (isinf(LB) && ~isinf(UB))
         xinitial = [UB;xinitial];
     end
+end
+
+% if we only use one starting point, take the given one (AEU)
+if par.InitialSample == 1,
+    xinitial = x0';
 end
 
 % Do we need to reject any samples?

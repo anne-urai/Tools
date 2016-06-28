@@ -7,8 +7,8 @@ function scatterHistDiff(x, y, xeb, yeb, colors)
 % Anne Urai, 2016
 
 % when no errorbars are present
-if ~exist('xeb', 'var'), xeb = []; end
-if ~exist('yeb', 'var'), yeb = []; end
+if ~exist('xeb', 'var') || isempty(xeb), xeb = nan(1, length(x)); end
+if ~exist('yeb', 'var') || isempty(yeb), yeb = nan(1, length(y)); end
 if ~exist('colors', 'var'), colors = [0.8 0.8 0.8]; end
 
 % prepare figure proportions
