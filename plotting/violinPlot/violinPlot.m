@@ -102,13 +102,15 @@ function handles = violinPlot(varargin)
 %                   Please download plotSpread.m separately from the File
 %                   Exchange using the link in the remarks
 %       showMM : if 1, mean and median are shown as red crosses and
-%                green squares, respectively. This is the default
+%                green squares, respectively.
 %                2: only mean
 %                3: only median
 %                4: mean +/- standard error of the mean (no median)
 %                5: mean +/- standard deviation (no median)
 %                6: draw lines at the 25,50,75 percentiles (no mean)
+%                7: compact boxplot on top of distribion. (AEU)
 %                0: plot neither mean nor median
+%                default: 7.
 %       xValues: x-coordinate where the data should be plotted.
 %                If xValues are given, "distWidth" is scaled by the median
 %                difference between adjacent (sorted) x-values. Note that
