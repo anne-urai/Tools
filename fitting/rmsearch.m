@@ -511,16 +511,10 @@ else
     xstart = xfinal;
     fstart = ffinal;
     
-    reverseStr = ''; % for command line output
     % loop over the candidates chosen
     for i = 1:nk
         
-        % give command window output
-        % display progress in command line
-        msg = sprintf('Running optimisation %d of %d', i, nk);
-        fprintf([reverseStr, msg]);
-        reverseStr = repmat(sprintf('\b'), 1, length(msg)); % \b brings cursor back to beginning
-        
+        tic;
         % store the start points in xstart and
         % fstart for plotting later
         xstart(i,:) = xinitial(i,:);
@@ -549,6 +543,10 @@ else
                 [xfinal(i,:),ffinal(i)] = ...
                     subplex(func2str(fun), xinitial(i,:));
         end
+        
+        % display progress in command line
+        fprintf('Optimisation %d of %d took %.2f s \n', i, nk, toc);
+        
     end
 end
 
