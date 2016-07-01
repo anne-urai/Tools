@@ -166,7 +166,7 @@ for b = 1:size(dat, 2),
     bar(b, mean(dat(:,b)), 'FaceColor',  colors(b, :), 'EdgeColor', 'none', 'BarWidth', 0.6);
 end
 
-% show SEM on top
+% show standard deviation on top
 h = ploterr(1:2, mean(dat), [], std(dat), 'k.', 'abshhxy', 0);
 set(h(1), 'marker', 'none'); % remove marker
 
