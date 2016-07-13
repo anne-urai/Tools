@@ -1,4 +1,4 @@
-function [binnedx, binnedy, stdx, stdy, rho, pval] = divideintobins(x, y, nbins, corrtype)
+function [binnedx, binnedy, binnedz, stdx, stdy, stdz] = divideintobins3(x, y, z, nbins)
 % take two vectors and divide x them into nbins, then compute the mean
 % response of y for each x
 
@@ -17,9 +17,11 @@ end
 
 binnedx = nan(1, nbins);
 binnedy = nan(1, nbins);
+binnedz = nan(1, nbins);
 
 stdx = nan(1, nbins);
 stdy = nan(1, nbins);
+stdz = nan(1, nbins);
 
 for q = 1:length(qs) + 1,
     
@@ -40,15 +42,15 @@ for q = 1:length(qs) + 1,
     % find the mean x and y 
     binnedx(q) = nanmean(x(findtrls));
     binnedy(q) = nanmean(y(findtrls));
+    binnedz(q) = nanmean(z(findtrls));
     
     assert(~isnan(binnedx(q)));
     
     % also compute variance
     stdx(q)   = nanstd(x(findtrls));
     stdy(q)   = nanstd(y(findtrls));
-
+    stdz(q)   = nanstd(z(findtrls));
+    
 end
 
-% do some statistics
-[rho, pval] = corr(binnedx', binnedy', 'type', corrtype);
 end

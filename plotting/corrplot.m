@@ -57,7 +57,7 @@ if ~exist('varnames2', 'var'),
                 set(h(1), 'MarkerSize', 3, 'MarkerEdgeColor', linspecer(1), 'MarkerFaceColor', 'w');
                 
                 if all(dat(i).ci{1} == dat(i).ci{2}),
-                    axis tight;
+                    axisNotSoTight;
                 else
                     % find axis limits that make sense
                     % (if leaving this out, huge CIs could obscure the datapoints)
@@ -66,7 +66,8 @@ if ~exist('varnames2', 'var'),
                 end
                 
                 % test if there is a correlation
-                [coef, pval] = corr(dat(i).mean, dat(j).mean, 'type', 'Spearman', 'rows', 'pairwise');
+                [coef, pval] = corr(dat(i).mean, dat(j).mean, ...
+                    'type', 'Spearman', 'rows', 'pairwise');
                 % indicate significant correlation
                 if pval < 0.05,
                     lh = lsline; set(lh, 'color', 'k');
@@ -74,7 +75,7 @@ if ~exist('varnames2', 'var'),
                 end
             else
                 
-                % leave white, dont plot the correlations twice
+                % leave white, only plot the lower left triangle
                 axis off;
             end
             
@@ -94,7 +95,6 @@ else
     % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % CORRELATE TWO SETS OF MEASURES WITH EACH OTHER
     % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
     
     % prepare data1
     for v = 1:length(varnames1),
@@ -145,11 +145,13 @@ else
             end
             title(sprintf('r %.2f, p %.3f', coef, pval));
             
-            try
+            if all(dat(i).ci{1} == dat(i).ci{2}),
+                axisNotSoTight;
+            else
                 % find axis limits that make sense
                 % (if leaving this out, huge CIs could obscure the datapoints)
-                xlim([min(dat1(i).mean) - abs(mean(dat1(i).mean)*0.5), max(dat1(i).mean) + abs(mean(dat1(i).mean)*0.5)]);
-                ylim([min(dat2(j).mean) - abs(mean(dat2(j).mean)*0.5), max(dat2(j).mean) + abs(mean(dat2(j).mean)*0.5)]);
+                xlim([nanmin(dat(i).mean) - abs(nanmean(dat(i).mean)*0.5), nanmax(dat(i).mean) + abs(nanmean(dat(i).mean)*0.5)]);
+                ylim([nanmin(dat(j).mean) - abs(nanmean(dat(j).mean)*0.5), nanmax(dat(j).mean) + abs(nanmean(dat(j).mean)*0.5)]);
             end
             
             % layout
