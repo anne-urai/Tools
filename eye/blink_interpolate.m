@@ -1,4 +1,4 @@
-function [newpupil, newblinksmp] = blink_interpolate(data, blinksmp, plotme)
+function [newpupil, newblinksmp, nanIdx] = blink_interpolate(data, blinksmp, plotme)
 % interpolates blinks and missing data
 % Anne Urai, 2016
 
@@ -53,6 +53,9 @@ if ~isempty(blinksmp),
     % also set the pupil to zero when there were missing data
     dat.pupil(dat.pupil < nanmedian(dat.pupil)-3*nanstd(dat.pupil)) = nan;
     dat.pupil(dat.pupil > nanmedian(dat.pupil)+3*nanstd(dat.pupil)) = nan;
+    
+    % save NaN idx
+    nanIdx = find(isnan(dat.pupil));
     
     % interpolate linearly
     dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
@@ -127,6 +130,9 @@ if ~isempty(peaks),
     for b = 1:size(newblinksmp,1),
         dat.pupil(newblinksmp(b,1):newblinksmp(b,2)) = NaN;
     end
+    
+    % save NaN idx
+    nanIdx = [nanIdx find(isnan(dat.pupil))];
     
     % interpolate linearly
     dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...

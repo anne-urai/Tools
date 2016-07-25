@@ -5,6 +5,7 @@ function [binnedx, binnedy, stdx, stdy, rho, pval] = divideintobins(x, y, nbins,
 if ~exist('corrtype', 'var'); corrtype = 'Spearman'; end
 %assert(~any(isnan(x)), 'x contains nans');
 %assert(~any(isnan(y)), 'y contains nans');
+nbins = unique(nbins);
 
 if nbins == 2,
     % use quantile rather than histcounts, we want each bin to contain the same nr of points!
