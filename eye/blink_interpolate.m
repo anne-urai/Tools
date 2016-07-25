@@ -53,6 +53,7 @@ if ~isempty(blinksmp),
     % also set the pupil to zero when there were missing data
     dat.pupil(dat.pupil < nanmedian(dat.pupil)-3*nanstd(dat.pupil)) = nan;
     dat.pupil(dat.pupil > nanmedian(dat.pupil)+3*nanstd(dat.pupil)) = nan;
+    dat.pupil(dat.pupil < 10) = nan;
     
     % save NaN idx
     nanIdx = find(isnan(dat.pupil));
@@ -137,6 +138,8 @@ if ~isempty(peaks),
     % interpolate linearly
     dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
         dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
+else
+    newblinksmp = [];
 end
 
 % remove remaining nans (probably at the end)

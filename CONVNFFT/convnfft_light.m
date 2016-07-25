@@ -1,6 +1,11 @@
 function A = convnfft_light(A,B)
 % light version of
 % http://nl.mathworks.com/matlabcentral/fileexchange/24504-fft-based-convolution
+% behaviour: size 'same'
+
+% save memory
+A = single(A);
+B = single(B);
 
 % eliminate loop
 m = size(A);
@@ -22,9 +27,14 @@ l = m+n-1;
 l2 = nextfastfft(l);
 
 % fftn in 1 step
-A = ifftn(fftn(A, l2) .* fftn(B, l2));
+A = convMe(A,B, l2);
 
 % truncate the results
 A = A(subs{:});
 
 end % convnfft
+
+function A = convMe(A, B, l)
+% will this use inplace mem?
+A = ifftn(fftn(A, l) .* fftn(B, l));
+end
