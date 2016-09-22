@@ -33,7 +33,7 @@ else
     txtBg = 'none';
 end
 
-fz = 7;
+fz = 8; fontweight = 'bold';
 if pval < 1e-3
     txt = '***';
 elseif pval < 1e-2
@@ -44,11 +44,11 @@ else
     % this should be smaller
     txt = 'n.s.';
     %txt = '';
-    fz = 5;
+    fz = 6; fontweight = 'normal';
 end
 
 % draw the stars in the bar
 h = text(mean(xpos), mean(ypos), txt, ...
     'horizontalalignment', 'center', 'backgroundcolor', ...
-    txtBg, 'margin', 1, 'fontsize', fz, 'color', color, 'Parent', ax);
+    txtBg, 'margin', 1, 'fontsize', fz, 'fontweight', fontweight, 'color', color, 'Parent', ax);
 end

@@ -1,55 +1,46 @@
-function [binnedx, binnedy, stdx, stdy, rho, pval] = divideintobins(x, y, nbins, corrtype)
+function [binnedx, binnedy, stdx, stdy, rho, pval] = divideintobins(x, y, nbins, corrtype, summaryFunc)
 % take two vectors and divide x them into nbins, then compute the mean
 % response of y for each x
 
 if ~exist('corrtype', 'var'); corrtype = 'Spearman'; end
 %assert(~any(isnan(x)), 'x contains nans');
 %assert(~any(isnan(y)), 'y contains nans');
-nbins = unique(nbins);
+if ~exist('summaryFunc', 'var'); summaryFunc = @nanmean; end % to allow for median
 
-if nbins == 2,
-    % use quantile rather than histcounts, we want each bin to contain the same nr of points!
-    qs      = quantile(x, 0.5);
-elseif nbins == 3,
-    qs      = quantile(x, [0.33 0.67]);
-else
-    qs      = quantile(x, nbins - 1);
+switch func2str(summaryFunc)
+    case 'nanmean'
+        distFun = @nanstd;
+    case {'nanmedian', 'median'}
+        distFun = @iqr;
 end
 
-binnedx = nan(1, nbins);
-binnedy = nan(1, nbins);
-
-stdx = nan(1, nbins);
-stdy = nan(1, nbins);
-
-for q = 1:length(qs) + 1,
-    
-    % determine which trials belong to this quantile
-    if q == 1,
-        findtrls = find(x <= qs(q));
-    elseif q == length(qs) + 1,
-        findtrls = find(x > qs(q-1));
-    else
-        findtrls = find(x <= qs(q) & x > qs(q-1));
+if nbins == length(unique(x)),
+    % split into the categories of x
+    thisx = unique(x);
+    mybins = nan(1, length(thisx) - 1);
+    for i = 1:length(thisx) -1,
+        mybins(i) = mean(thisx(i:i+1));
     end
-    
-    % nicer: get bin centres
-    % [~, idx] = min(abs(centres-x));
-    
-    % assert(~isempty(findtrls), 'no trials found in this bin');
-    
-    % find the mean x and y 
-    binnedx(q) = nanmean(x(findtrls));
-    binnedy(q) = nanmean(y(findtrls));
-    
-    assert(~isnan(binnedx(q)));
-    
-    % also compute variance
-    stdx(q)   = nanstd(x(findtrls));
-    stdy(q)   = nanstd(y(findtrls));
-
+    binIdx = discretize(x, [-inf mybins inf]);
+else
+    binIdx = discretize(x, [-inf quantile(x, nbins-1) inf]);
 end
+
+% get the summary measure for each bin
+binnedx = splitapply(summaryFunc, x, binIdx);
+binnedy = splitapply(summaryFunc, y, binIdx);
+
+% also get the distribution within each bin
+stdx = splitapply(distFun, x, binIdx);
+stdy = splitapply(distFun, y, binIdx);
 
 % do some statistics
-[rho, pval] = corr(binnedx', binnedy', 'type', corrtype);
+if ~isempty(corrtype),
+    % on binned or non-binned data? binning will change rho, but not really 
+    % the p-value of the correlation
+    [rho, pval] = corr(x(:), y(:), 'type', corrtype);
+else
+    rho = []; pval = [];
+end
+
 end

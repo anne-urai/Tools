@@ -68,7 +68,7 @@ function hh = ploterr(x, y, xerr, yerr, varargin)
 %    linear scale, absolute size in units power of 10 for logscale, i.e.
 %    the command PLOTERR(...,'logy','abshhx',1.0) produces x handlebars
 %    spanning each one decade on the y axis.
-%   
+%
 %   H = PLOTERR(...) returns a vector of line handles in the order:
 %      H(1) = handle to datapoints
 %      H(2) = handle to errorbar y OR errorbar x if error y not specified
@@ -103,7 +103,7 @@ function hh = ploterr(x, y, xerr, yerr, varargin)
 %
 %   Draws symmetric error bars of unit standard deviation along a sine wave.
 %
-%   
+%
 %   Extended example:
 %   -----------------
 %
@@ -125,7 +125,7 @@ function hh = ploterr(x, y, xerr, yerr, varargin)
 %  technique for plotting error bars
 %  ---------------------------------
 %   L. Shure 5-17-88, 10-1-91 B.A. Jones 4-5-93
-%   Copyright 1984-2002 The MathWorks, Inc. 
+%   Copyright 1984-2002 The MathWorks, Inc.
 %   $Revision: 5.19 $  $Date: 2002/06/05 20:05:14 $
 %
 %  modified for plotting horizontal error bars
@@ -137,7 +137,7 @@ function hh = ploterr(x, y, xerr, yerr, varargin)
 %
 % Version History
 % ===============
-%  
+%
 %  v1.0, October 2008: modification of errorbar_x by Goetz Huesken for
 %          plotting horizontal and/or vertical errorbars and to support
 %          logarithmic scaling.
@@ -167,7 +167,9 @@ end
 
 if isempty(x), x = (1:size(y,1))'; end
 
-try [x,y]=expandarrays(x,y); catch error('x and y are not consistent in size.'), end
+try [x,y]=expandarrays(x,y); catch
+    error('x and y are not consistent in size.');
+end
 
 % check if xerror is relative or absolute
 relxerr=false;
@@ -183,15 +185,25 @@ elseif length(xerr)~=2
 end
 
 % make xerr and x and y values same size
-try [xl,xh]=expandarrays(xerr{1},xerr{2}); catch error('xl and xh are not consistent in size.'), end
-try [y,xl,ty,txl]=expandarrays(y,xl); catch error('xl and y are not consistent in size.'), end
+try [xl,xh]=expandarrays(xerr{1},xerr{2}); catch
+    error('xl and xh are not consistent in size.');
+end
+try [y,xl,ty,txl]=expandarrays(y,xl); catch
+    error('xl and y are not consistent in size.');
+end
 if ty, y=y'; xl=xl'; txl=~txl; end % make sure x and y still match
 if txl, xh=xh'; end % make sure xl and xh still match
-try [y,xh]=expandarrays(y,xh); catch error('xh and y are not consistent in size.'), end
+try [y,xh]=expandarrays(y,xh); catch
+    error('xh and y are not consistent in size.');
+end
 if relxerr
-    try [xl,x,txl]=expandarrays(xl,x); catch error('xl and x are not consistent in size.'), end
+    try [xl,x,txl]=expandarrays(xl,x); catch
+        error('xl and x are not consistent in size.');
+    end
     if txl, xh=xh'; end
-    try [x,xh]=expandarrays(x,xh); catch error('xh and x are not consistent in size.'), end
+    try [x,xh]=expandarrays(x,xh); catch
+        error('xh and x are not consistent in size.');
+    end
     xl=x+xl; xh=x+xh;
 end
 
@@ -209,14 +221,24 @@ elseif length(yerr)~=2
 end
 
 % make yerr and x and y values same size
-try [yl,yh]=expandarrays(yerr{1},yerr{2}); catch error('yl and yh are not consistent in size.'), end
-try [x,yl,tx,tyl]=expandarrays(x,yl); catch error('yl and x are not consistent in size.'), end
+try [yl,yh]=expandarrays(yerr{1},yerr{2}); 
+catch error('yl and yh are not consistent in size.');
+end
+try [x,yl,tx,tyl]=expandarrays(x,yl); catch 
+    error('yl and x are not consistent in size.');
+end
 if tx, x=x'; yl=yl'; tyl=~tyl; end % make sure x and y still match
 if tyl, yh=yh'; end % make sure yl and yh still match
-try [x,yh]=expandarrays(x,yh); catch error('yh and x are not consistent in size.'), end
+try [x,yh]=expandarrays(x,yh); catch 
+    error('yh and x are not consistent in size.');
+end
 if relyerr
-    try [y,yl]=expandarrays(y,yl); catch error('yl and y are not consistent in size.'), end
-    try [y,yh]=expandarrays(y,yh); catch error('yh and y are not consistent in size.'), end
+    try [y,yl]=expandarrays(y,yl); catch 
+        error('yl and y are not consistent in size.');
+    end
+    try [y,yh]=expandarrays(y,yh); catch 
+        error('yh and y are not consistent in size.');
+    end
     yl=y+yl; yh=y+yh;
 end
 
@@ -260,89 +282,89 @@ function [perp,para] = barline(v,l,h,uselog,handleheight)
 % v: value "perpendicular"
 % l: lower bound "parallel"
 % h: upper bound "parallel"
-    
-    [npt,n]=size(l);
-    
-    % calculate height of errorbar delimiters
-    
-    % set basic operations for linear spacing
-    dist=@minus;
-    invdist=@plus;
-    scale=@times;
-    
-    if uselog
-        % overwrite basic operations for logarithmic spacing
-        dist=@rdivide;
-        invdist=@times;
-        scale=@power;
+
+[npt,n]=size(l);
+
+% calculate height of errorbar delimiters
+
+% set basic operations for linear spacing
+dist=@minus;
+invdist=@plus;
+scale=@times;
+
+if uselog
+    % overwrite basic operations for logarithmic spacing
+    dist=@rdivide;
+    invdist=@times;
+    scale=@power;
+end
+
+if handleheight>0 % means handleheight was passed as a relative value
+    % set width of ends of bars to handleheight times mean distance of the bars.
+    % If number of points is under 15, space as if 15 points were there.
+    if dist(max(v(:)),min(v(:)))==0
+        dv = scale(abs(v),1/40) + (abs(v)==0);
+    else
+        dv = scale(dist(max(v(:)),min(v(:))),1/max(15,npt-1)*handleheight/2);
     end
-    
-    if handleheight>0 % means handleheight was passed as a relative value
-	    % set width of ends of bars to handleheight times mean distance of the bars.
-	    % If number of points is under 15, space as if 15 points were there.
-	    if dist(max(v(:)),min(v(:)))==0
-	      dv = scale(abs(v),1/40) + (abs(v)==0);
-	    else
-	      dv = scale(dist(max(v(:)),min(v(:))),1/max(15,npt-1)*handleheight/2);
-	    end
-	else % handleheight<=0 means handleheight was passed as an absolute value
-        dv=handleheight/2;
-        if uselog, dv=10^dv; end
-    end
+else % handleheight<=0 means handleheight was passed as an absolute value
+    dv=handleheight/2;
+    if uselog, dv=10^dv; end
+end
 
-    vh = invdist(v,dv);
-    vl = dist(v,dv);
+vh = invdist(v,dv);
+vl = dist(v,dv);
 
-    % build up nan-separated vector for bars
-    para = zeros(npt*9,n);
-    para(1:9:end,:) = h;
-    para(2:9:end,:) = l;
-    para(3:9:end,:) = NaN;
-    para(4:9:end,:) = h;
-    para(5:9:end,:) = h;
-    para(6:9:end,:) = NaN;
-    para(7:9:end,:) = l;
-    para(8:9:end,:) = l;
-    para(9:9:end,:) = NaN;
+% build up nan-separated vector for bars
+para = zeros(npt*9,n);
+para(1:9:end,:) = h;
+para(2:9:end,:) = l;
+para(3:9:end,:) = NaN;
+para(4:9:end,:) = h;
+para(5:9:end,:) = h;
+para(6:9:end,:) = NaN;
+para(7:9:end,:) = l;
+para(8:9:end,:) = l;
+para(9:9:end,:) = NaN;
 
-    perp = zeros(npt*9,n);
-    perp(1:9:end,:) = v;
-    perp(2:9:end,:) = v;
-    perp(3:9:end,:) = NaN;
-    perp(4:9:end,:) = vh;
-    perp(5:9:end,:) = vl;
-    perp(6:9:end,:) = NaN;
-    perp(7:9:end,:) = vh;
-    perp(8:9:end,:) = vl;
-    perp(9:9:end,:) = NaN;
+perp = zeros(npt*9,n);
+perp(1:9:end,:) = v;
+perp(2:9:end,:) = v;
+perp(3:9:end,:) = NaN;
+perp(4:9:end,:) = vh;
+perp(5:9:end,:) = vl;
+perp(6:9:end,:) = NaN;
+perp(7:9:end,:) = vh;
+perp(8:9:end,:) = vl;
+perp(9:9:end,:) = NaN;
 end
 
 function [A,B,tA,tB] = expandarrays(A,B)
 % A, B: Matrices to be expanded by repmat to have same size after being processed
 % tA, tB: indicate wether A or B have been transposed
-    sizA=size(A); tA=false;
-    sizB=size(B); tB=false;
-    % do not process empty arrays
-    if isempty(A) || isempty(B), return, end
-    % make vectors column vectors
-    if sizA(1)==1, A=A(:); tA=~tA; sizA=sizA([2 1]); end
-    if sizB(1)==1, B=B(:); tB=~tB; sizB=sizB([2 1]); end
-    % transpose to fit column, if necessary
-    if sizA(2)==1 && sizB(2)~=1 && sizB(2)==sizA(1) && sizB(1)~=sizA(1), B=B'; tB=~tB; sizB=sizB([2 1]); end
-    if sizB(2)==1 && sizA(2)~=1 && sizA(2)==sizB(1) && sizB(1)~=sizB(1), A=A'; tA=~tA; sizA=sizA([2 1]); end
-    % if only singletons need to be expanded, do it
-    if all(sizA==sizB | sizA==1 | sizB==1)
-        singletonsA=find(sizA==1 & sizB~=1);
-        repA=ones(1,2);
-        repA(singletonsA)=sizB(singletonsA);
-        A=repmat(A,repA);
-        singletonsB=find(sizB==1 & sizA~=1);
-        repB=ones(1,2);
-        repB(singletonsB)=sizA(singletonsB);
-        B=repmat(B,repB);
-    else % otherwise return error
-        error('Arrays A and B must have equal size for all dimensions that are not singleton!')
-    end
+sizA=size(A); tA=false;
+sizB=size(B); tB=false;
+% do not process empty arrays
+if isempty(A) || isempty(B), return, end
+% make vectors column vectors
+if sizA(1)==1, A=A(:); tA=~tA; sizA=sizA([2 1]); end
+if sizB(1)==1, B=B(:); tB=~tB; sizB=sizB([2 1]); end
+% transpose to fit column, if necessary
+if sizA(2)==1 && sizB(2)~=1 && sizB(2)==sizA(1) && sizB(1)~=sizA(1), B=B'; tB=~tB; sizB=sizB([2 1]); end
+if sizB(2)==1 && sizA(2)~=1 && sizA(2)==sizB(1) && sizB(1)~=sizB(1), A=A'; tA=~tA; sizA=sizA([2 1]); end
+% if only singletons need to be expanded, do it
+if all(sizA==sizB | sizA==1 | sizB==1)
+    singletonsA=find(sizA==1 & sizB~=1);
+    repA=ones(1,2);
+    repA(singletonsA)=sizB(singletonsA);
+    A=repmat(A,repA);
+    singletonsB=find(sizB==1 & sizA~=1);
+    repB=ones(1,2);
+    repB(singletonsB)=sizA(singletonsB);
+    B=repmat(B,repB);
+else % otherwise return error
+    error('Arrays A and B must have equal size for all dimensions that are not singleton!')
+end
 end
 
 function [sym,lx,ly,hx,hy] = getproperties(A)
@@ -361,46 +383,46 @@ while idx <= n
     val=A{idx+1};
     if all(prop(end-1:end)=='yx') || all(prop(end-1:end)=='xy'), prop=prop(1:end-2); end
     switch prop
-     case 'logx'
-        if isnumeric(val), lx=val;
-        else lx=1; idx=idx-1;
-        end
-     case 'logy'
-        if isnumeric(val), ly=val;
-        else ly=1; idx=idx-1;
-        end
-     case 'log'
-        if isnumeric(val), ly=val; lx=val;
-        else ly=1; lx=1; idx=idx-1;
-        end
-     case 'hhx'
-        if isnumeric(val), hx=abs(val);
-        else error('Property hhx must be followed by a numerical value.');
-        end
-     case 'hhy'
-        if isnumeric(val), hy=abs(val);
-        else error('Property hhy must be followed by a numerical value.');
-        end
-     case 'hh'
-        if isnumeric(val), hy=abs(val); hx=abs(val);
-        else error('Property hh must be followed by a numerical value.');
-        end
-     case 'abshhx'
-        if isnumeric(val), hx=-abs(val);
-        else error('Property abshhx must be followed by a numerical value.');
-        end
-     case 'abshhy'
-        if isnumeric(val), hy=-abs(val);
-        else error('Property abshhy must be followed by a numerical value.');
-        end
-     case 'abshh'
-        if isnumeric(val), hy=-abs(val); hx=-abs(val);
-        else error('Property abshh must be followed by a numerical value.');
-        end
-     otherwise
-        if ischar(prop), error(['Unknown property: ' prop])
-        else error('Parsed a property that is not a string.')
-        end
+        case 'logx'
+            if isnumeric(val), lx=val;
+            else lx=1; idx=idx-1;
+            end
+        case 'logy'
+            if isnumeric(val), ly=val;
+            else ly=1; idx=idx-1;
+            end
+        case 'log'
+            if isnumeric(val), ly=val; lx=val;
+            else ly=1; lx=1; idx=idx-1;
+            end
+        case 'hhx'
+            if isnumeric(val), hx=abs(val);
+            else error('Property hhx must be followed by a numerical value.');
+            end
+        case 'hhy'
+            if isnumeric(val), hy=abs(val);
+            else error('Property hhy must be followed by a numerical value.');
+            end
+        case 'hh'
+            if isnumeric(val), hy=abs(val); hx=abs(val);
+            else error('Property hh must be followed by a numerical value.');
+            end
+        case 'abshhx'
+            if isnumeric(val), hx=-abs(val);
+            else error('Property abshhx must be followed by a numerical value.');
+            end
+        case 'abshhy'
+            if isnumeric(val), hy=-abs(val);
+            else error('Property abshhy must be followed by a numerical value.');
+            end
+        case 'abshh'
+            if isnumeric(val), hy=-abs(val); hx=-abs(val);
+            else error('Property abshh must be followed by a numerical value.');
+            end
+        otherwise
+            if ischar(prop), error(['Unknown property: ' prop])
+            else error('Parsed a property that is not a string.')
+            end
     end
     idx=idx+2;
 end
