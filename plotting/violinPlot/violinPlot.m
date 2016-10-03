@@ -804,7 +804,6 @@ if opt.showMM
                 mdh(3,:) = plot(ah,squeeze(md(:,3,2:3))',repmat(md(:,3,1)',2,1),'color','k','lineWidth',1);%,'lineStyle','--');
             end
             if opt.showMM == 7 % boxplot
-               % assert(1==0);
                 boxplot(ah, currentData, 'PlotStyle', 'compact', 'color', 'k', 'MedianStyle', 'target');
                 % mdh = plot(ah,opt.xValues+xOffset, md, 'o', 'MarkerSize',markersz, 'markerfacecolor', 'w', 'color', 'k');
             end
