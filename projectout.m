@@ -18,4 +18,9 @@ residual = vector(idx2use) - (vector(idx2use)'*prj)*prj; % subtract dot product,
 fullresidual = nan(size(vector));
 fullresidual(idx2use) = residual;
 
+if all(isnan(fullresidual))
+    fullresidual = vector;
+    fullresidual(idx2use) = residual;
+end
+    
 end
