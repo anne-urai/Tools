@@ -12,9 +12,11 @@ function [ ] = corrplot( data, varnames1, varnames2 )
 %
 % Anne Urai, 1 april 2015
 
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ============================================ %
 % CORRELATE ALL MEASURES WITH EACH OTHER
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ============================================ %
+
+close all;
 
 if ~exist('varnames2', 'var'),
     
@@ -67,9 +69,9 @@ if ~exist('varnames2', 'var'),
                 
                 % test if there is a correlation
                 [coef, pval] = corr(dat(i).mean, dat(j).mean, ...
-                    'type', 'Spearman', 'rows', 'pairwise');
+                    'type', 'Pearson', 'rows', 'pairwise');
                 % indicate significant correlation
-                if pval < 0.05,
+                if pval < (0.05 / (nsubpl/2)) && abs(coef) > 0.5,
                     lh = lsline; set(lh, 'color', 'k');
                     title(sprintf('rho %.2f, p %.3f', coef, pval));
                 end
@@ -92,9 +94,9 @@ if ~exist('varnames2', 'var'),
     
 else
     
-    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % ============================================ %
     % CORRELATE TWO SETS OF MEASURES WITH EACH OTHER
-    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % ============================================ %
     
     % prepare data1
     for v = 1:length(varnames1),
@@ -138,21 +140,21 @@ else
             set(h(1), 'MarkerSize', 3, 'MarkerEdgeColor', linspecer(1), 'MarkerFaceColor', 'w');
             
             % test if there is a correlation
-            [coef, pval] = corr(dat1(i).mean, dat2(j).mean, 'type', 'Spearman', 'rows', 'pairwise');
+            [coef, pval] = corr(dat1(i).mean(:), dat2(j).mean(:), 'type', 'Spearman', 'rows', 'pairwise');
             % indicate significant correlation
             if pval < 0.05,
                 lh = lsline; set(lh, 'color', 'k');
             end
             title(sprintf('r %.2f, p %.3f', coef, pval));
             
-            if all(dat(i).ci{1} == dat(i).ci{2}),
-                axisNotSoTight;
-            else
-                % find axis limits that make sense
-                % (if leaving this out, huge CIs could obscure the datapoints)
-                xlim([nanmin(dat(i).mean) - abs(nanmean(dat(i).mean)*0.5), nanmax(dat(i).mean) + abs(nanmean(dat(i).mean)*0.5)]);
-                ylim([nanmin(dat(j).mean) - abs(nanmean(dat(j).mean)*0.5), nanmax(dat(j).mean) + abs(nanmean(dat(j).mean)*0.5)]);
-            end
+            % if all(dat1(i).ci{1} == dat1(i).ci{2}),
+            axisNotSoTight;
+            % else
+            % find axis limits that make sense
+            % (if leaving this out, huge CIs could obscure the datapoints)
+            %    xlim([nanmin(dat(i).mean) - abs(nanmean(dat(i).mean)*0.5), nanmax(dat(i).mean) + abs(nanmean(dat(i).mean)*0.5)]);
+            %    ylim([nanmin(dat(j).mean) - abs(nanmean(dat(j).mean)*0.5), nanmax(dat(j).mean) + abs(nanmean(dat(j).mean)*0.5)]);
+            % end
             
             % layout
             if j == length(dat2),       xlabel(varnames1{i}, 'interpreter', 'none'); end
