@@ -70,6 +70,7 @@ if ~exist('varnames2', 'var'),
                 % test if there is a correlation
                 [coef, pval] = corr(dat(i).mean, dat(j).mean, ...
                     'type', 'Pearson', 'rows', 'pairwise');
+                r = refline(1); set(r, 'color', [0.5 0.5 0.5]);
                 % indicate significant correlation
                 if pval < (0.05 / (nsubpl/2)) && abs(coef) > 0.5,
                     lh = lsline; set(lh, 'color', 'k');
@@ -142,25 +143,21 @@ else
             % test if there is a correlation
             [coef, pval] = corr(dat1(i).mean(:), dat2(j).mean(:), 'type', 'Spearman', 'rows', 'pairwise');
             % indicate significant correlation
-            if pval < 0.05,
+            if pval < 0.01,
                 lh = lsline; set(lh, 'color', 'k');
             end
             title(sprintf('r %.2f, p %.3f', coef, pval));
             
             % if all(dat1(i).ci{1} == dat1(i).ci{2}),
             axisNotSoTight;
-            % else
-            % find axis limits that make sense
-            % (if leaving this out, huge CIs could obscure the datapoints)
-            %    xlim([nanmin(dat(i).mean) - abs(nanmean(dat(i).mean)*0.5), nanmax(dat(i).mean) + abs(nanmean(dat(i).mean)*0.5)]);
-            %    ylim([nanmin(dat(j).mean) - abs(nanmean(dat(j).mean)*0.5), nanmax(dat(j).mean) + abs(nanmean(dat(j).mean)*0.5)]);
-            % end
+            % r = refline(1); set(r, 'color', [0.5 0.5 0.5]);
+            grid on;
             
             % layout
             if j == length(dat2),       xlabel(varnames1{i}, 'interpreter', 'none'); end
             if i == 1,                  ylabel(varnames2{j}, 'interpreter', 'none'); end
-            if j < length(dat2),        set(gca, 'xtick', []); end
-            if i > 1,                   set(gca, 'ytick', []); end
+            if j < length(dat2),        set(gca, 'xticklabel', []); end
+            if i > 1,                   set(gca, 'yticklabel', []); end
             set(gca, 'tickdir', 'out', 'box', 'off');
             
         end
