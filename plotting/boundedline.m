@@ -334,7 +334,7 @@ end
 % Assign output
 %--------------------
 
-nargchk(0, 2, nargout);
+nargoutchk(0, 2);
 
 if nargout >= 1
     varargout{1} = hl;
@@ -384,7 +384,7 @@ else
 end
 
 if any(ismissing)
-    warning('NaNs in bounds; inpainting');
+%    warning('NaNs in bounds; inpainting');
     xp = inpaint_nans(xp');
     yp = inpaint_nans(yp');
 end
