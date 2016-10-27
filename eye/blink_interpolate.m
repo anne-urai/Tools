@@ -7,7 +7,7 @@ dat.time        = data.time{1};
 dat.pupil       = data.trial{1}(~cellfun(@isempty, strfind(lower(data.label), 'eyepupil')),:);
 dat.gazex       = data.trial{1}(~cellfun(@isempty, strfind(lower(data.label), 'eyeh')),:);
 dat.gazey       = data.trial{1}(~cellfun(@isempty, strfind(lower(data.label), 'eyev')),:);
-padding         = 0.150; % how long before and after do we want to pad?
+padding         = 0.2; % how long before and after do we want to pad?
 dat.blinksmp    = blinksmp; % get sample idx from asc
 
 % initialize settings
@@ -63,13 +63,14 @@ if ~isempty(blinksmp),
         dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
     
     % to avoid edge artefacts at the beginning and end of file, pad in seconds
-    % edgepad = 1;
-    % dat.pupil(1:edgepad*data.fsample)           = NaN;
-    % dat.pupil(end-edgepad*data.fsample : end)   = NaN;
+    edgepad = 1;
+    dat.pupil(1:edgepad*data.fsample)           = NaN;
+    dat.pupil(end-edgepad*data.fsample : end)   = NaN;
     
     % also extrapolate ends
     dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
-        dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'nearest', 'extrap');
+        dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), ...
+        'nearest', 'extrap');
     
     if plotme, sp2 = subplot(411); hold on;
         % show how well this worked
@@ -85,7 +86,7 @@ end
 
 assert(~any(isnan(dat.pupil)));
 win             = hanning(11);
-pupildatsmooth  = filter2(win.',dat.pupil,'same');
+pupildatsmooth  = filter2(win.', dat.pupil, 'same');
 
 dat.pupildiff   = diff(pupildatsmooth) - mean(diff(pupildatsmooth)) / std(diff(pupildatsmooth));
 [peaks, loc]    = findpeaks(abs(dat.pupildiff), 'minpeakheight', 3*std(dat.pupildiff), 'minpeakdistance', 0.5*data.fsample);
@@ -108,7 +109,7 @@ if ~isempty(peaks),
     % convert peaks into blinksmp
     newblinksmp = nan(length(peaks), 2);
     for p = 1:length(peaks),
-        newblinksmp(p, 1) = loc(p) - 2*padding * data.fsample; % peak detected will be eye-opening again
+        newblinksmp(p, 1) = loc(p) - padding * data.fsample; % peak detected will be eye-opening again
         newblinksmp(p, 2) = loc(p) + padding * data.fsample;
     end
     
