@@ -9,7 +9,7 @@ if ~exist('alpha', 'var'), alpha = 0.05; end
 SEM     = std(x)/sqrt(size(x, 1));                       % Standard Error
 ts      = tinv([alpha/2  1-alpha/2],size(x, 1)-1);       % T-Score
 avg     = mean(x);
-CIlow   = -ts(1)*SEM;                           % Confidence Intervals
+CIlow   = -ts(1)*SEM;                           	     % Confidence Intervals
 CIup    = ts(2)*SEM;
 
 end

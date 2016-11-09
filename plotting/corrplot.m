@@ -41,8 +41,9 @@ if ~exist('varnames2', 'var'),
             if i == j,
                 % for autocorrelation, plot histfit
                 h = histfit(dat(i).mean, round(length(dat(i).mean)/3));
-                set(h(1), 'edgecolor', 'none');
+                set(h(1), 'edgecolor', 'none', 'facecolor', 'b');
                 set(h(2), 'color', 'k');
+                axis square;
                 
             elseif i < j,
                 
@@ -59,7 +60,7 @@ if ~exist('varnames2', 'var'),
                 set(h(1), 'MarkerSize', 3, 'MarkerEdgeColor', linspecer(1), 'MarkerFaceColor', 'w');
                 
                 if all(dat(i).ci{1} == dat(i).ci{2}),
-                    axisNotSoTight;
+                    axisNotSoTight; 
                 else
                     % find axis limits that make sense
                     % (if leaving this out, huge CIs could obscure the datapoints)
@@ -69,13 +70,14 @@ if ~exist('varnames2', 'var'),
                 
                 % test if there is a correlation
                 [coef, pval] = corr(dat(i).mean, dat(j).mean, ...
-                    'type', 'Pearson', 'rows', 'pairwise');
-                r = refline(1); set(r, 'color', [0.5 0.5 0.5]);
+                    'type', 'Spearman', 'rows', 'pairwise');
+                % r = refline(1); set(r, 'color', [0.5 0.5 0.5]);
                 % indicate significant correlation
                 if pval < (0.05 / (nsubpl/2)) && abs(coef) > 0.5,
                     lh = lsline; set(lh, 'color', 'k');
                     title(sprintf('rho %.2f, p %.3f', coef, pval));
                 end
+                axis square;
             else
                 
                 % leave white, only plot the lower left triangle
@@ -85,8 +87,8 @@ if ~exist('varnames2', 'var'),
             % layout
             if j == nsubpl,     xlabel(varnames1{i}, 'interpreter', 'none'); end
             if i == 1,          ylabel(varnames1{j}, 'interpreter', 'none'); end
-            if j < nsubpl,      set(gca, 'xtick', []); end
-            if i > 1,           set(gca, 'ytick', []); end
+            if j < nsubpl,      set(gca, 'xticklabel', []); end
+            if i > 1,           set(gca, 'yticklabel', []); end
             
             set(gca, 'tickdir', 'out', 'box', 'off');
             
@@ -149,7 +151,7 @@ else
             title(sprintf('r %.2f, p %.3f', coef, pval));
             
             % if all(dat1(i).ci{1} == dat1(i).ci{2}),
-            axisNotSoTight;
+            axisNotSoTight; axis square;
             % r = refline(1); set(r, 'color', [0.5 0.5 0.5]);
             grid on;
             
