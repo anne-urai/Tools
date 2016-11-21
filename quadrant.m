@@ -9,7 +9,7 @@ function idx = quadrant(inp, whichQuadrant)
 % end
 
 if ~exist('inp', 'var'); inp = randn(100, 100); end
-if ~exist('whichQuadrant', 'var'); whichQuadrant = 'bottom'; end
+if ~exist('whichQuadrant', 'var'); whichQuadrant = 'north'; end
 
 % make axes
 x = linspace(-1, 1, size(inp, 1));
@@ -20,13 +20,13 @@ y = linspace(-1, 1, size(inp, 2));
 
 % select one quadrant
 switch whichQuadrant
-    case 'bottom'
-        idx = (xgr > ygr) & (abs(xgr) < abs(ygr));
-    case 'right'
-        idx = (xgr > ygr) & (abs(xgr) > abs(ygr));
-    case 'top'
+    case 'north'
         idx = (xgr < ygr) & (abs(xgr) < abs(ygr));
-    case 'left'
+    case 'east'
+        idx = (xgr > ygr) & (abs(xgr) > abs(ygr));
+    case 'south'
+        idx = (xgr > ygr) & (abs(xgr) < abs(ygr));
+    case 'west'
         idx = (xgr < ygr) & (abs(xgr) > abs(ygr));
 end
 
