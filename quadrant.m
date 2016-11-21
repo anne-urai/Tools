@@ -1,4 +1,4 @@
-function idx = quadrant(inp, whichQuadrant)
+function outp = quadrant(inp, whichQuadrant)
 % extract one quadrant of a square matrix
 
 % % test
