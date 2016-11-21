@@ -16,23 +16,25 @@ x = linspace(-1, 1, size(inp, 1));
 y = linspace(-1, 1, size(inp, 2));
 
 % make a grid
-[xgr, ygr] = meshgrid(x,y);
+[xgr, ygr]  = meshgrid(x,y);
+[th, ~]     = cart2pol(xgr, ygr);
+th          = wrapTo360(rad2deg(th));
 
 % select one quadrant
 switch whichQuadrant
     case 'north'
-        idx = (xgr < ygr) & (abs(xgr) < abs(ygr));
-    case 'east'
-        idx = (xgr > ygr) & (abs(xgr) > abs(ygr));
+        idx = (th > 225 & th <= 315);
     case 'south'
-        idx = (xgr > ygr) & (abs(xgr) < abs(ygr));
+        idx = (th > 45 & th <= 135);
     case 'west'
-        idx = (xgr < ygr) & (abs(xgr) > abs(ygr));
+        idx = (th > 135 & th <= 225);
+    case 'east'
+        idx = (th > 315 | th <= 45);
 end
 
 % now output the original matrix with only this quadrant *not* set to zero
-outp = inp;
-outp((idx == 0)) = 0; % use idx as a mask
+outp                = inp;
+outp((idx == 0))    = 0; % use idx as a mask
 assert(all(size(outp) == size(inp)), 'something went horribly wrong');
 
 end
