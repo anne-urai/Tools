@@ -53,7 +53,7 @@ if ~isempty(blinksmp),
     % also set the pupil to zero when there were missing data
     dat.pupil(dat.pupil < nanmedian(dat.pupil)-3*nanstd(dat.pupil)) = nan;
     dat.pupil(dat.pupil > nanmedian(dat.pupil)+3*nanstd(dat.pupil)) = nan;
-    dat.pupil(dat.pupil < 10) = nan;
+   % dat.pupil(dat.pupil < 10) = nan;
     
     % save NaN idx
     nanIdx = find(isnan(dat.pupil));
@@ -61,7 +61,7 @@ if ~isempty(blinksmp),
     % interpolate linearly
     dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
         dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
-    
+
     % to avoid edge artefacts at the beginning and end of file, pad in seconds
     edgepad = 1;
     dat.pupil(1:edgepad*data.fsample)           = NaN;

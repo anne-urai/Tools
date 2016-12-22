@@ -37,39 +37,46 @@ if data.fsample ~= 1000,
     warning('pupil not sampled with 1000Hz');
 end
 
-% parse blinks
-blinktimes = cellfun(@regexp, asc.eblink, ...
-    repmat({'\d*'}, length(asc.eblink), 1), repmat({'match'}, length(asc.eblink), 1), ...
-    'UniformOutput', false); % parse blinktimes from ascdat
-blinktimes2 = nan(length(blinktimes), 2);
-for s = 1:length(blinktimes), a = blinktimes{s};
-    for j = 1:2, blinktimes2(s, j) = str2double(a{j}); end
-end
-timestamps = asc.dat(1,:); % get the time info
-try
-    blinksmp = arrayfun(@(x) find(timestamps == x, 1,'first'), blinktimes2, 'UniformOutput', true ); %find sample indices of blinktimes in timestamps
-catch
-    blinksmp = arrayfun(@(x) dsearchn(timestamps', x), blinktimes2, 'UniformOutput', true ); %find sample indices of blinktimes in timestamps
-end
-
-% parse saccades
-sacctimes = cellfun(@regexp, asc.esacc, ...
-    repmat({'\d*'}, length(asc.esacc), 1), repmat({'match'}, length(asc.esacc), 1), ...
-    'UniformOutput', false); % parse blinktimes from ascdat
-sacctimes2 = nan(length(sacctimes), 2);
-for s = 1:length(sacctimes), a = sacctimes{s};
-    for j = 1:2,
-        if str2double(a{j}) ~= 0,
-            sacctimes2(s, j) = str2double(a{j});
-        else
-            sacctimes2(s, j) = str2double(a{j+1});
-        end
+if ~isempty(asc.eblink),
+    
+    % parse blinks
+    blinktimes = cellfun(@regexp, asc.eblink, ...
+        repmat({'\d*'}, length(asc.eblink), 1), repmat({'match'}, length(asc.eblink), 1), ...
+        'UniformOutput', false); % parse blinktimes from ascdat
+    blinktimes2 = nan(length(blinktimes), 2);
+    for s = 1:length(blinktimes), a = blinktimes{s};
+        for j = 1:2, blinktimes2(s, j) = str2double(a{j}); end
+    end
+    timestamps = asc.dat(1,:); % get the time info
+    try
+        blinksmp = arrayfun(@(x) find(timestamps == x, 1,'first'), blinktimes2, 'UniformOutput', true ); %find sample indices of blinktimes in timestamps
+    catch
+        blinksmp = arrayfun(@(x) dsearchn(timestamps', x), blinktimes2, 'UniformOutput', true ); %find sample indices of blinktimes in timestamps
     end
 end
-try
-    saccsmp = arrayfun(@(x) find(timestamps == x, 1,'first'), sacctimes2, 'UniformOutput', true ); %find sample indices
-catch
-    saccsmp = arrayfun(@(x) dsearchn(timestamps', x), sacctimes2, 'UniformOutput', true );
+
+if ~isempty(asc.esacc),
+    % parse saccades
+    sacctimes = cellfun(@regexp, asc.esacc, ...
+        repmat({'\d*'}, length(asc.esacc), 1), repmat({'match'}, length(asc.esacc), 1), ...
+        'UniformOutput', false); % parse blinktimes from ascdat
+    sacctimes2 = nan(length(sacctimes), 2);
+    for s = 1:length(sacctimes), a = sacctimes{s};
+        for j = 1:2,
+            if str2double(a{j}) ~= 0,
+                sacctimes2(s, j) = str2double(a{j});
+            else
+                sacctimes2(s, j) = str2double(a{j+1});
+            end
+        end
+    end
+    
+    timestamps = asc.dat(1,:); % get the time info
+    try
+        saccsmp = arrayfun(@(x) find(timestamps == x, 1,'first'), sacctimes2, 'UniformOutput', true ); %find sample indices
+    catch
+        saccsmp = arrayfun(@(x) dsearchn(timestamps', x), sacctimes2, 'UniformOutput', true );
+    end
 end
 
 end
