@@ -61,6 +61,12 @@ newsaccsmp  = round(saccsmp * (newFs/fsample));
 % STEP 3: DECONVOLUTION
 % ====================================================== %
 
+% dont continue if the subject didnt blink
+if isempty(newblinksmp),
+    newpupil = dat.bpfilt;
+    return;
+end
+
 clear designM
 colcnt = 1;
 for r = 1:2, % two regressors

@@ -1,4 +1,4 @@
-function [newpupil, newblinksmp, nanIdx] = blink_interpolate(data, blinksmp, plotme)
+function [newpupil, newblinksmp, nanIdx, dat] = blink_interpolate(data, blinksmp, plotme)
 % interpolates blinks and missing data
 % Anne Urai, 2016
 
@@ -59,6 +59,12 @@ if ~isempty(blinksmp),
     nanIdx = find(isnan(dat.pupil));
     
     % interpolate linearly
+    dat.gazex(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
+        dat.gazex(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
+    dat.gazey(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
+        dat.gazey(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
+
+    % now the pupil itself
     dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
         dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
 
@@ -67,17 +73,30 @@ if ~isempty(blinksmp),
     dat.pupil(1:edgepad*data.fsample)           = NaN;
     dat.pupil(end-edgepad*data.fsample : end)   = NaN;
     
+    dat.gazey(isnan(dat.pupil)) = NaN;
+    dat.gazex(isnan(dat.pupil)) = NaN;
+    
     % also extrapolate ends
+    dat.gazex(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
+        dat.gazex(~isnan(dat.pupil)), find(isnan(dat.pupil)), ...
+        'nearest', 'extrap');
+    dat.gazey(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
+        dat.gazey(~isnan(dat.pupil)), find(isnan(dat.pupil)), ...
+        'nearest', 'extrap');
+    
+    % now the pupil itself
     dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
         dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), ...
         'nearest', 'extrap');
-    
-    if plotme, sp2 = subplot(411); hold on;
+      
+      if plotme, sp2 = subplot(411); hold on;
         % show how well this worked
         plot(dat.time, dat.pupil, 'b');
         axis tight; box off; ylabel('Interp');
         set(gca, 'xtick', []);
     end
+else
+    nanIdx = [];
 end
 
 % ====================================================== %
@@ -137,6 +156,14 @@ if ~isempty(peaks),
     nanIdx = [nanIdx find(isnan(dat.pupil))];
     
     % interpolate linearly
+    dat.gazex(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
+        dat.gazex(~isnan(dat.pupil)), find(isnan(dat.pupil)), ...
+        'nearest', 'extrap');
+    dat.gazey(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
+        dat.gazey(~isnan(dat.pupil)), find(isnan(dat.pupil)), ...
+        'nearest', 'extrap');
+    
+    % now the pupil itself
     dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
         dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), 'linear');
 else

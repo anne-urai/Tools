@@ -53,6 +53,8 @@ if ~isempty(asc.eblink),
     catch
         blinksmp = arrayfun(@(x) dsearchn(timestamps', x), blinktimes2, 'UniformOutput', true ); %find sample indices of blinktimes in timestamps
     end
+else
+    blinksmp = [];
 end
 
 if ~isempty(asc.esacc),
@@ -77,6 +79,8 @@ if ~isempty(asc.esacc),
     catch
         saccsmp = arrayfun(@(x) dsearchn(timestamps', x), sacctimes2, 'UniformOutput', true );
     end
+else
+    saccsmp = [];
 end
 
 end
