@@ -40,11 +40,13 @@ elseif pval < 1e-2
     txt = '**';
 elseif pval < 0.05
     txt = '*';
-else
+elseif ~isnan(pval),
     % this should be smaller
     txt = 'n.s.';
     %txt = '';
     fz = 6; fontweight = 'normal';
+else
+    return
 end
 
 % draw the stars in the bar

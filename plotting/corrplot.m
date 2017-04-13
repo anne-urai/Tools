@@ -16,8 +16,6 @@ function [ ] = corrplot( data, varnames1, varnames2 )
 % CORRELATE ALL MEASURES WITH EACH OTHER
 % ============================================ %
 
-close all;
-
 if ~exist('varnames2', 'var'),
     
     % prepare data
@@ -36,15 +34,17 @@ if ~exist('varnames2', 'var'),
     for i = 1:nsubpl,
         for j = 1:nsubpl,
             
-            subplot(nsubpl, nsubpl, i + (j-1)*nsubpl)
+            subplot(nsubpl, nsubpl, i + (j-1)*nsubpl); hold on;
             
             if i == j,
                 % for autocorrelation, plot histfit
-                h = histfit(dat(i).mean, round(length(dat(i).mean)/3));
-                set(h(1), 'edgecolor', 'none', 'facecolor', 'b');
-                set(h(2), 'color', 'k');
+                h = histogram(dat(i).mean, round(length(dat(i).mean)/5));
+                set(h(1), 'edgecolor', 'none', 'facecolor', linspecer(1));
+                % set(h(2), 'color', 'k', 'linewidth', 0.5);
                 axis square;
-                
+                axisNotSoTight;
+                vline(nanmean(dat(i).mean), 'color', 'k', 'linewidth', 1);
+                ylim([0 max(get(gca, 'ylim'))]);
             elseif i < j,
                 
                 % for correlation, show scatter plot with errorbars
@@ -52,15 +52,15 @@ if ~exist('varnames2', 'var'),
                     dat(j).mean, ...
                     dat(i).ci, ...
                     dat(j).ci, ...
-                    'ko','hhxy',0.1);
+                    'k.','hhxy',0.1);
                 
                 % layout
                 set(h(2),'Color',[0.8 0.8 0.8]);
                 set(h(3),'Color',[0.8 0.8 0.8]);
-                set(h(1), 'MarkerSize', 3, 'MarkerEdgeColor', linspecer(1), 'MarkerFaceColor', 'w');
+                set(h(1), 'MarkerSize', 8, 'MarkerEdgeColor', linspecer(1), 'MarkerFaceColor', 'w');
                 
                 if all(dat(i).ci{1} == dat(i).ci{2}),
-                    axisNotSoTight; 
+                    axisNotSoTight;
                 else
                     % find axis limits that make sense
                     % (if leaving this out, huge CIs could obscure the datapoints)
@@ -71,13 +71,24 @@ if ~exist('varnames2', 'var'),
                 % test if there is a correlation
                 [coef, pval] = corr(dat(i).mean, dat(j).mean, ...
                     'type', 'Spearman', 'rows', 'pairwise');
+                
                 % r = refline(1); set(r, 'color', [0.5 0.5 0.5]);
                 % indicate significant correlation
-                if pval < (0.05 / (nsubpl/2)) && abs(coef) > 0.5,
-                    lh = lsline; set(lh, 'color', 'k');
-                    title(sprintf('rho %.2f, p %.3f', coef, pval));
+                if pval < 0.01,
+                    lh = lsline; set(lh, 'color', 'k', 'linewidth', 0.5);
                 end
+                title(sprintf('\\rho = %.2f, p = %.3f', coef, pval), 'fontweight', 'normal');
+                hline(0, 'color', [0.5 0.5 0.5], 'linewidth', 0.5);
+                vline(0, 'color', [0.5 0.5 0.5], 'linewidth', 0.5);
                 axis square;
+                
+                % plot the group stats on top
+                plot(dat(i).mean, dat(j).mean, '.', 'MarkerSize', 5, 'MarkerEdgeColor', linspecer(1));
+                
+                h = ploterr(mean(dat(i).mean), mean(dat(j).mean), ...
+                    std(dat(i).mean) ./ sqrt(numel(dat(i).mean)), ...
+                    std(dat(j).mean) ./ sqrt(numel(dat(j).mean)), ...
+                    'k.','abshhxy', 0);
             else
                 
                 % leave white, only plot the lower left triangle
@@ -85,8 +96,21 @@ if ~exist('varnames2', 'var'),
             end
             
             % layout
-            if j == nsubpl,     xlabel(varnames1{i}, 'interpreter', 'none'); end
-            if i == 1,          ylabel(varnames1{j}, 'interpreter', 'none'); end
+            if numel(varnames1{i}) > 20,
+                [xtoken,remain] = strsplit(varnames1{i}, '__');
+            else
+                xtoken = varnames1{i};
+            end
+            
+            if numel(varnames1{j}) > 20,
+                [ytoken,remain] = strsplit(varnames1{j}, '__');
+            else
+                ytoken = varnames1{j};
+            end
+            
+            % do layout
+            if j == nsubpl,     xlabel(xtoken, 'interpreter', 'none'); end
+            if i == 1,          ylabel(ytoken, 'interpreter', 'none'); end
             if j < nsubpl,      set(gca, 'xticklabel', []); end
             if i > 1,           set(gca, 'yticklabel', []); end
             
@@ -135,25 +159,29 @@ else
                 dat2(j).mean, ...
                 dat1(i).ci, ...
                 dat2(j).ci, ...
-                'ko','hhxy',0.1);
+                'k.','hhxy',0.1);
             
             % layout
             set(h(2),'Color',[0.8 0.8 0.8]);
             set(h(3),'Color',[0.8 0.8 0.8]);
-            set(h(1), 'MarkerSize', 3, 'MarkerEdgeColor', linspecer(1), 'MarkerFaceColor', 'w');
+            set(h(1), 'MarkerSize', 8, 'MarkerEdgeColor', linspecer(1), 'MarkerFaceColor', 'w');
+            
+            axisNotSoTight;
+            hline(0, 'color', [0.5 0.5 0.5], 'linewidth', 0.5);
+            vline(0, 'color', [0.5 0.5 0.5], 'linewidth', 0.5);
+            axis square;
             
             % test if there is a correlation
             [coef, pval] = corr(dat1(i).mean(:), dat2(j).mean(:), 'type', 'Spearman', 'rows', 'pairwise');
             % indicate significant correlation
-            if pval < 0.01,
+            if pval < 0.05,
                 lh = lsline; set(lh, 'color', 'k');
             end
-            title(sprintf('r %.2f, p %.3f', coef, pval));
+            title(sprintf('\\rho = %.2f, p = %.3f', coef, pval), 'fontweight', 'normal');
             
             % if all(dat1(i).ci{1} == dat1(i).ci{2}),
-            axisNotSoTight; axis square;
             % r = refline(1); set(r, 'color', [0.5 0.5 0.5]);
-            grid on;
+            % grid on;
             
             % layout
             if j == length(dat2),       xlabel(varnames1{i}, 'interpreter', 'none'); end

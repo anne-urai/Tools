@@ -1,4 +1,4 @@
-function offsetAxes(ax)
+function offsetAxes(ax, offset)
 % this function 'despines' the x- and y-axes, letting them begin at the
 % first tick mark
 % thanks to Pierre Morel & undocumented Matlab
@@ -7,10 +7,11 @@ function offsetAxes(ax)
 % by Anne Urai, 2016
 
 if ~exist('ax', 'var'), ax = gca; end
+if ~exist('offset', 'var'), offset = 4; end
 
 % modify the x and y limits to below the data (by a small amount)
-ax.XLim(1) = ax.XLim(1)-(ax.XTick(2)-ax.XTick(1))/4;
-ax.YLim(1) = ax.YLim(1)-(ax.YTick(2)-ax.YTick(1))/4;
+ax.XLim(1) = ax.XLim(1)-(ax.XTick(2)-ax.XTick(1))/offset;
+ax.YLim(1) = ax.YLim(1)-(ax.YTick(2)-ax.YTick(1))/offset;
 
 % this will keep the changes constant even when resizing axes
 addlistener(ax, 'MarkedClean', @(obj,event)resetVertex(ax));
