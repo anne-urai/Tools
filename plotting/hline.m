@@ -5,7 +5,9 @@ function hline(y, varargin)
 abc = axis;
 y = [y y];
 x = abc([1 2]);
-if length(varargin)==1
+if length(varargin) == 0,
+    varargin = {'color', [0.5 0.5 0.5]};
+elseif length(varargin)==1
   varargin = {'color', varargin{1}};
 end
 h = line(x, y);
