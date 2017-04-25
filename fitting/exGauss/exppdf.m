@@ -1,0 +1,1 @@
+function y = exppdf(x,mu)% exponential pdfif nargin==1	y=exp(-x);	else	y=(1/mu).*exp(-x./mu);end

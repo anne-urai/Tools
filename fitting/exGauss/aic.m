@@ -1,0 +1,1 @@
+function y=aic(logl,k)  y=2.*logl+(2.*k);        % computes Akaike's information criterion (AIC)

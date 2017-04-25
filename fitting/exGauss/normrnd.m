@@ -1,0 +1,1 @@
+function y=normrnd(mu,sig,r,c);% generates random number distributed following a Gaussian N(Mu, sig)% Version 1.0 29/4/99% (c) Yves Lacouture, Université Lavalif nargin<4,     error('This function requires 4 scalar arguments mu, sigma ,nrow , ncolum');endy = randn(r,c) .* sig + mu;
