@@ -9,10 +9,10 @@ Phit = length(find(stim ==  1 & resp == 1)) / length(find(stim == 1));
 Pfa  = length(find(stim == -1 & resp == 1)) / length(find(stim == -1));
 
 % correct for 100% or 0% values, will lead to Inf norminv output
-if Phit > 0.99;     Phit = 0.99;
-elseif Phit < 0.01; Phit = .01; end
-if Pfa < 0.01;      Pfa = 0.01;
-elseif Pfa > 0.99,  Pfa = 0.99; end
+if Phit > 0.999;     Phit = 0.999;
+elseif Phit < 0.001; Phit = .001; end
+if Pfa < 0.001;      Pfa = 0.001;
+elseif Pfa > 0.999,  Pfa = 0.999; end
 
 % compute dprime and criterion
 dprime = norminv(Phit) - norminv(Pfa);
