@@ -74,7 +74,7 @@ if ~exist('varnames2', 'var'),
                 
                 % r = refline(1); set(r, 'color', [0.5 0.5 0.5]);
                 % indicate significant correlation
-                if pval < 0.01,
+                if pval < 0.05,
                     lh = lsline; set(lh, 'color', 'k', 'linewidth', 0.5);
                 end
                 title(sprintf('\\rho = %.2f, p = %.3f', coef, pval), 'fontweight', 'normal');
