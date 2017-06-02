@@ -71,13 +71,14 @@ if ~exist('varnames2', 'var'),
                 % test if there is a correlation
                 [coef, pval] = corr(dat(i).mean, dat(j).mean, ...
                     'type', 'Spearman', 'rows', 'pairwise');
+                bf = corrbf(coef, sum(~isnan(dat(i).mean)));
                 
                 % r = refline(1); set(r, 'color', [0.5 0.5 0.5]);
                 % indicate significant correlation
                 if pval < 0.05,
                     lh = lsline; set(lh, 'color', 'k', 'linewidth', 0.5);
                 end
-                title(sprintf('\\rho = %.2f, p = %.3f', coef, pval), 'fontweight', 'normal');
+                title(sprintf('\\rho = %.2f p = %.3f bf = %.3f', coef, pval, bf), 'fontweight', 'normal');
                 hline(0, 'color', [0.5 0.5 0.5], 'linewidth', 0.5);
                 vline(0, 'color', [0.5 0.5 0.5], 'linewidth', 0.5);
                 axis square;
@@ -173,11 +174,13 @@ else
             
             % test if there is a correlation
             [coef, pval] = corr(dat1(i).mean(:), dat2(j).mean(:), 'type', 'Spearman', 'rows', 'pairwise');
+            bf = corrbf(coef, sum(~isnan(dat1(i).mean)));
+
             % indicate significant correlation
             if pval < 0.05,
                 lh = lsline; set(lh, 'color', 'k');
             end
-            title(sprintf('\\rho = %.2f, p = %.3f', coef, pval), 'fontweight', 'normal');
+            title(sprintf('\\rho = %.2f, p = %.3f, bf = %.3f', coef, pval, bf), 'fontweight', 'normal');
             
             % if all(dat1(i).ci{1} == dat1(i).ci{2}),
             % r = refline(1); set(r, 'color', [0.5 0.5 0.5]);
