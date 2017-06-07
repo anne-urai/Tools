@@ -1,4 +1,4 @@
-function [ ] = corrplot( data, varnames1, varnames2 )
+function [ ] = corrplot( data, varnames1, varnames2, groupvar)
 % mimics the corrplot function from the econometrics toolbox, which I sadly
 % do not have. data has to be a table, and varnames the names of the variables
 % that should be correlated. if present, will use varname_cilow and varname_cihigh
@@ -11,6 +11,8 @@ function [ ] = corrplot( data, varnames1, varnames2 )
 % input bounds, not distance from x/y!
 %
 % Anne Urai, 1 april 2015
+
+if isempty(varnames2), clear varnames2; end
 
 % ============================================ %
 % CORRELATE ALL MEASURES WITH EACH OTHER
@@ -47,17 +49,22 @@ if ~exist('varnames2', 'var'),
                 ylim([0 max(get(gca, 'ylim'))]);
             elseif i < j,
                 
-                % for correlation, show scatter plot with errorbars
-                h = ploterr(dat(i).mean, ...
-                    dat(j).mean, ...
-                    dat(i).ci, ...
-                    dat(j).ci, ...
-                    'k.','hhxy',0.1);
-                
-                % layout
-                set(h(2),'Color',[0.8 0.8 0.8]);
-                set(h(3),'Color',[0.8 0.8 0.8]);
-                set(h(1), 'MarkerSize', 8, 'MarkerEdgeColor', linspecer(1), 'MarkerFaceColor', 'w');
+                if exist('groupvar', 'var'),
+                    scatter(dat(i).mean, dat(j).mean, 10, data.(groupvar));
+                    
+                else
+                    % for correlation, show scatter plot with errorbars
+                    h = ploterr(dat(i).mean, ...
+                        dat(j).mean, ...
+                        dat(i).ci, ...
+                        dat(j).ci, ...
+                        'k.','hhxy',0.1);
+                    
+                    % layout
+                    set(h(2),'Color',[0.8 0.8 0.8]);
+                    set(h(3),'Color',[0.8 0.8 0.8]);
+                    set(h(1), 'MarkerSize', 8, 'MarkerEdgeColor', linspecer(1), 'MarkerFaceColor', 'w');
+                end
                 
                 if all(dat(i).ci{1} == dat(i).ci{2}),
                     axisNotSoTight;
@@ -78,18 +85,21 @@ if ~exist('varnames2', 'var'),
                 if pval < 0.05,
                     lh = lsline; set(lh, 'color', 'k', 'linewidth', 0.5);
                 end
-                title(sprintf('\\rho = %.2f p = %.3f bf = %.3f', coef, pval, bf), 'fontweight', 'normal');
+               % title(sprintf('\\rho = %.2f p = %.3f bf = %.3f', coef, pval, bf), 'fontweight', 'normal');
                 hline(0, 'color', [0.5 0.5 0.5], 'linewidth', 0.5);
                 vline(0, 'color', [0.5 0.5 0.5], 'linewidth', 0.5);
                 axis square;
                 
                 % plot the group stats on top
-                plot(dat(i).mean, dat(j).mean, '.', 'MarkerSize', 5, 'MarkerEdgeColor', linspecer(1));
+                if ~exist('groupvar', 'var'),
+                    plot(dat(i).mean, dat(j).mean, '.', 'MarkerSize', 5, 'MarkerEdgeColor', linspecer(1));
+                end
                 
                 h = ploterr(mean(dat(i).mean), mean(dat(j).mean), ...
                     std(dat(i).mean) ./ sqrt(numel(dat(i).mean)), ...
                     std(dat(j).mean) ./ sqrt(numel(dat(j).mean)), ...
                     'k.','abshhxy', 0);
+                
             else
                 
                 % leave white, only plot the lower left triangle
