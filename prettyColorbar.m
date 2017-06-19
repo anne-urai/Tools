@@ -1,4 +1,5 @@
-function handles = prettyColorbar(titleStr)
+function handles = prettyColorbar(titleStr, thinning)
+if ~exist('thinning', 'var'), thinning = 0.5; end
 
 % ==================================================================
 % make colorbar look pretty
@@ -23,7 +24,7 @@ for h = 1:length(hAllAxes), axpos{h} = hAllAxes(h).Position; end
 % make colorbar thinner
 for h = 1:length(handles),
     cpos = handles(h).Position;
-    cpos(3) = 0.5*cpos(3);
+    cpos(3) = thinning*cpos(3);
     handles(h).Position = cpos;
 end
 drawnow;

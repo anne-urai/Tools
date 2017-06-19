@@ -3,8 +3,6 @@ function [binnedx, binnedy, stdx, stdy, rho, pval] = divideintobins(x, y, nbins,
 % response of y for each x
 
 if ~exist('corrtype', 'var'); corrtype = 'Spearman'; end
-%assert(~any(isnan(x)), 'x contains nans');
-%assert(~any(isnan(y)), 'y contains nans');
 if ~exist('summaryFunc', 'var'); summaryFunc = @nanmean; end % to allow for median
 
 switch func2str(summaryFunc)
@@ -26,12 +24,8 @@ else
     binIdx = discretize(x, [-inf quantile(x, nbins-1) inf]);
 end
 
-try
 % get the summary measure for each bin
 binnedx = splitapply(summaryFunc, x, binIdx);
-catch
-  assert(1==0);
-end
 binnedy = splitapply(summaryFunc, y, binIdx);
 
 % also get the distribution within each bin

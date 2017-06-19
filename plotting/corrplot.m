@@ -12,7 +12,9 @@ function [ ] = corrplot( data, varnames1, varnames2, groupvar)
 %
 % Anne Urai, 1 april 2015
 
+if exist('varnames2', 'var'),
 if isempty(varnames2), clear varnames2; end
+end
 
 % ============================================ %
 % CORRELATE ALL MEASURES WITH EACH OTHER
