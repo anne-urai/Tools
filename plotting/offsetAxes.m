@@ -23,7 +23,10 @@ function resetVertex ( ax )
 
 % X, Y and Z row of the start and end of the individual axle.
 ax.XRuler.Axle.VertexData(1,1) = min(get(ax, 'Xtick'));
+ax.XRuler.Axle.VertexData(1,2) = max(get(ax, 'Xtick'));
+
 % repeat for Y (set 2nd row)
 ax.YRuler.Axle.VertexData(2,1) = min(get(ax, 'Ytick'));
+ax.YRuler.Axle.VertexData(2,2) = max(get(ax, 'Ytick'));
 
 end
