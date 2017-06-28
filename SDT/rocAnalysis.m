@@ -5,6 +5,9 @@ function out = rocAnalysis(x,y,tail,nrand)
 % tail = 0 (test i~=0.5), 1 (test i>0.5), -1 (test i<0.5);
 % nrand: number of randomizations for permutation test
 
+if ~exist('tail', 'var'), tail = 0; end
+if ~exist('nrand', 'var'), nrand = 0; end
+
 x   = x(:);
 y   = y(:);
 nx  = length(x);
