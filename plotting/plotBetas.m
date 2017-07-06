@@ -40,7 +40,6 @@ end
 h = ploterr(1:size(beta, 2), squeeze(nanmean(beta)), [], ...
     squeeze(nanstd(beta)) ./ sqrt(size(beta,1)), 'k.', 'abshhxy', 0);
 set(h(1), 'marker', 'none');
-
 set(gca, 'xtick', [1 2], 'xminortick', 'off');
 ylabel('Beta weights (a.u.)');
 
@@ -52,9 +51,10 @@ for i = 1:size(beta, 2),
     % mysigstar(gca, i, max(get(gca, 'ylim')), pval);
 end
 
+axis tight;
 if size(beta,2) == 2,
     [~, pval] = ttest(beta(:, 1), beta(:, 2));
-    mysigstar(gca, [1 2], max(get(gca, 'ylim'))*1.1, pval);
+    mysigstar(gca, [1 2], max(get(gca, 'ylim'))*1.02, pval);
 end
 
 end
