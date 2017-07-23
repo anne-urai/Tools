@@ -23,19 +23,21 @@ h_inset         = copyobj(main_fig, main_fig.Parent);
 % make a normal scatter plot using plot_err and individual datapoint errorbars
 if size(colors, 1) > 1,
     for i = 1:size(x, 1),
-        h = ploterr(x(i), y(i), xeb(i), yeb(i), '.');
+        h = ploterr(x(i), y(i), xeb(i), yeb(i), 'o');
         set(h(1), 'color', colors(i, :), 'markerfacecolor', colors(i, :), 'markersize', 7);
         set(h(2), 'color', colors(i, :), 'linewidth', 0.5);
         set(h(3), 'color', colors(i, :), 'linewidth', 0.5);
     end
 else
     % plot all with the same color
-    h = ploterr(x, y, xeb, yeb, '.k');
-    set(h(1), 'markersize', 7);
+    scatter(x,y, 15, ...
+    'LineWidth', 0.001, ...
+    'markeredgecolor', 'w', 'markerfacecolor', colors);
 end
 
 % set axes
-axis(main_fig, 'tight');
+axisNotSoTight;
+
 xlims = get(main_fig, 'xlim'); ylims = get(main_fig, 'ylim');
 minAx = min([xlims ylims]); maxAx = max([xlims ylims]);
 rangeAx = range([minAx maxAx]);
@@ -63,7 +65,7 @@ rightTopX = axpos(1) + axpos(3) - 0.4*insetSize;
 rightTopY = axpos(2) + axpos(4) - 0.05*insetSize;
 set(h_inset,'view', [45 90], ...
     'Position', [rightTopX rightTopY insetSize insetSize], ...
-    'box', 'off', 'ytick', [], 'ycolor', 'w', 'fontsize', 6, ...
+    'box', 'off', 'ytick', [], 'ycolor', 'w', 'fontsize', 3, ...
     'xlim', [-max(abs(x-y))*1.2 max(abs(x-y))*1.2]);
 
 end

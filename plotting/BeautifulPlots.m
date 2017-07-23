@@ -194,7 +194,7 @@ for b = 1:2,
     % if mysigstar gets just 1 xpos input, it will only plot stars
 end
 
-%% VIOLING PLOTS
+%% VIOLIN PLOTS
 
 % barplots obscure a lot of the features in your data, since just the mean
 % and sem are poor summary statistics when the data are not normally
