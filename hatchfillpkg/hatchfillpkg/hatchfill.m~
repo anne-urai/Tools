@@ -1,0 +1,178 @@
+function H = hatchfill(A,STYL,ANGLE,SPACING,FACECOL)
+%% HATCHFILL Hatching and speckling of patch objects
+%%   HATCHFILL(A) fills the patch(es) with handle(s) A.
+%%   A can be a vector of handles or a single handle.
+%%   If A is a vector, then all objects of A should
+%%   be part of the same group for predictable results.
+%%   The hatch consists of black lines angled at
+%%   45 degrees spaced 5 pixels apart, with no color
+%%   filling between the lines.
+%%
+%%   HATCHFILL(A,STYL) applies STYL pattern with default paramters.
+%%      - STYL can be 'single' for single lines (the default),
+%%      'cross' for a double-crossed hatch, 'speckle' for
+%%      speckling inside the patch boundary, and 'outspeckle' for
+%%      for speckling outside the boundary. 'fill' will
+%%      apply only a gray fill and no hatching.
+%%
+%%   HATCHFILL(A,STYL,ANGLE,SPACING) applies a hatch/speckle with
+%%   customized parameters:
+%%      - ANGLE sets the angle of hatch lines. For speckling, it 
+%%      controls the width of the speckling region.
+%%      - SPACING controls the spacing of hatch lines or the
+%%      density of speckle points.
+%%      If STYL is 'fill', then ANGLE and SPACING are ignored.
+%%
+%%   HATCHFILL(A,STYL,ANGLE,SPACING,FACECOL) allows the user
+%%   to specify a fill color. (The default is 'none'.)
+%%
+%%   H = HATCHFILL(...) returns handles to the line objects
+%%   comprising the hatch/speckle.
+%%
+%%   Examples:
+%%       Gray region with hatching:
+%%       hh = hatchfill(a,'cross',45,5,[0.5 0.5 0.5]);
+%%
+%%       Speckled region:
+%%       hatchfill(a,'speckle',7,1);
+%%
+%%   NOTE: This function depends on the script hatch_xy.m
+%%   based on the work of R. Pawlowicz, K. Pankratov, and
+%%   Iram Weinstein.
+%%
+%%   Neil Tandon 11 Jul 2011
+
+% set defaults:
+if nargin == 1
+    STYL = 'single';
+    ANGLE = 45;
+    SPACING = 5;
+    FACECOL = 'none';
+end
+
+% For backwards compatability:
+if strcmpi(STYL,'none')
+    STYL = 'fill';
+end
+
+if nargin == 2
+    if strcmpi(STYL,'single') || strcmpi(STYL,'cross')
+        ANGLE = 45;
+        SPACING = 5;
+        FACECOL = 'none';
+    elseif strcmpi(STYL,'speckle') || strcmpi(STYL,'outspeckle')
+        ANGLE = 7;
+        SPACING = 1;
+        FACECOL = 'none';
+    elseif strcmpi(STYL,'fill')
+        FACECOL = [0.8 0.8 0.8];
+    end
+end
+
+if nargin == 3
+    error('Invalid number of input arguments');
+end
+
+if nargin == 4
+    if strcmpi(STYL,'fill')
+        FACECOL = [0.8 0.8 0.8];
+    else
+        FACECOL = 'none';
+    end
+end
+
+if ( ~strcmpi(STYL,'single') && ~strcmpi(STYL,'cross') && ...
+     ~strcmpi(STYL,'speckle') && ~strcmpi(STYL,'outspeckle') && ...
+     ~strcmpi(STYL,'fill') )
+    error(['Invalid style: ',STYL])
+end
+
+linec = 'k';
+linew = 0.5;
+specksize = 2;
+
+% axis handle is two hierarchical levels up
+hax = get(get(A(1),'parent'),'parent'); 
+is_axes = strcmpi(get(hax,'type'),'axes');
+x_is_log = 0; y_is_log = 0;
+x_is_reverse = 0; y_is_reverse = 0;
+
+if is_axes
+   axsize_in = get(hax,'position');
+   y_is_log = strcmpi(get(hax,'yscale'),'log');
+   if y_is_log
+       ylims = get(hax,'ylim');
+       dy = (ylims(2) - ylims(1))/(log10(ylims(2))-log10(ylims(1)));
+       set(hax,'units','pixels');
+       axsize = get(hax,'position');
+       set(hax,'position',[ axsize(1:3) dy*axsize(4) ]);
+       set(hax,'units','normalized')
+   end
+
+   x_is_log = strcmpi(get(hax,'xscale'),'log');
+   if x_is_log
+       xlims = get(hax,'xlim');
+       dx = (xlims(2) - xlims(1))/(log10(xlims(2))-log10(xlims(1)));
+       set(hax,'units','pixels');
+       axsize = get(hax,'position');
+       set(hax,'position',[ axsize(1:2) dx*axsize(3) axsize(4) ]);
+       set(hax,'units','normalized')
+   end
+
+   if strcmp(STYL,'single') || strcmp(STYL,'cross')
+      y_is_reverse = strcmpi(get(hax,'ydir'),'reverse');
+      if y_is_reverse
+          ANGLE = -ANGLE;
+      end
+      x_is_reverse = strcmpi(get(hax,'xdir'),'reverse');
+      if x_is_reverse
+          ANGLE = 180-ANGLE;
+      end
+   end
+end
+
+% Apply hatch:
+j = 1;
+for k = 1:length(A)
+    set(A,'facecolor',FACECOL);
+    v = get(A(k),'vertices');
+    if any(v(end,:)~=v(1,:))
+        v(end+1,:) = v(1,:);
+    end
+    x = v(:,1);
+    if x_is_log
+        x = log10(v(:,1));
+    end
+    y = v(:,2);
+    if y_is_log
+        y = log10(v(:,2));
+    end
+
+    if strcmp(STYL,'fill')
+        H = NaN;
+        continue
+    end
+
+    [xhatch,yhatch] = hatch_xy(x,y,STYL,ANGLE,SPACING);
+    if x_is_log
+        xhatch = 10.^xhatch;
+    end
+    if y_is_log
+        yhatch = 10.^yhatch;
+    end
+    if strcmp(STYL,'speckle') || strcmp(STYL,'outspeckle')
+        if any(xhatch)
+            H(j) = line(xhatch,yhatch,'marker','.','linest','none', ...
+                    'markersize',specksize,'color',linec);
+            j = j+1;
+        end
+    elseif strcmp(STYL,'single') || strcmp(STYL,'cross')
+        H(j) = line(xhatch,yhatch);
+        set(H(j),'color',linec,'linewidth',linew);
+        j = j+1;
+    end
+end
+
+if y_is_log || x_is_log
+    set(hax,'position',axsize_in);
+end

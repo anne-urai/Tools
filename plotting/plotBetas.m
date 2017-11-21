@@ -32,8 +32,9 @@ global mypath;
 % barplot with individual datapoints
 hold on;
 for i = 1:size(beta, 2),
-    bar(i, squeeze(nanmean(beta(:, i))), ...
+    b = bar(i, squeeze(nanmean(beta(:, i))), ...
         'edgecolor', 'none', 'facecolor', colors(i, :), 'barwidth', 0.4);
+ %   b.BaseLine.LineStyle = 'none';
 end
 
 % add error bars for SEM

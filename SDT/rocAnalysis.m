@@ -17,7 +17,7 @@ c   = sort(z);
 
 % preallocate
 det = nan(length(c), 2);
-for ic = 1:length(c);
+for ic = 1:length(c)
     det(ic, 1) = mean(x>c(ic));
     det(ic, 2) = mean(y>c(ic));
 end
@@ -30,7 +30,7 @@ t1      = cumtrapz(roc(:,1),roc(:,2));
 out.i   = t1(end);
 out.roc = roc;
 
-if nrand > 0,
+if nrand > 0
     % randomize
     trialx = zeros(nrand);
     trialy = trialx;

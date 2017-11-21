@@ -9,7 +9,7 @@ function offsetAxes(ax, offset)
 if ~exist('ax', 'var'), ax = gca; end
 if ~exist('offset', 'var'), offset = 4; end
 
-set(gca, 'xcolor', 'k', 'ycolor', 'k');
+% set(gca, 'xcolor', 'k', 'ycolor', 'k');
 
 % modify the x and y limits to below the data (by a small amount)
 ax.XLim(1) = ax.XLim(1)-(ax.XTick(2)-ax.XTick(1))/offset;

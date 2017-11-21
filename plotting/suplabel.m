@@ -83,7 +83,7 @@ elseif strcmp('yy',whichLabel)
   set(ax,'YAxisLocation','right')
 end
 
-for k=1:length(currax), axes(currax(k));end % restore all other axes
+for k=1:length(currax), axes(currax(k)); end % restore all other axes
 
 if (nargout < 2)
   return

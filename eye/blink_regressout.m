@@ -15,6 +15,11 @@ disp('adding back slow drift at the end'); end % plot all this stuff
 dat.pupil       = pupildata;
 dat.time        = [1: length(pupildata)] ./ fsample; % time axis
 
+% make sure there are no NaNs left in the pupil timecourse
+dat.pupil(isnan(dat.pupil)) = interp1(find(~isnan(dat.pupil)), ...
+    dat.pupil(~isnan(dat.pupil)), find(isnan(dat.pupil)), ...
+    'nearest', 'extrap');
+      
 % ====================================================== %
 % STEP 1: BAND-PASS FILTER
 % ====================================================== %
@@ -96,7 +101,7 @@ for r = 1:2, % two regressors
 end
 
 % deconvolve to get IRFs
-deconvolvedPupil       = pinv(designM) * downsmp'; % pinv more robust than inv
+deconvolvedPupil       = pinv(designM) * downsmp(:); % pinv more robust than inv
 deconvolvedPupil       = reshape(deconvolvedPupil, range(imp)*newFs, 2);
 
 % ====================================================== %
@@ -111,7 +116,7 @@ deconvolvedPupil(:, 1) = deconvolvedPupil(:, 1) - deconvolvedPupil(1,1);
 deconvolvedPupil(:, 2) = deconvolvedPupil(:, 2) - deconvolvedPupil(1,2);
 
 blinkIRF = doublegamma_fit(x, deconvolvedPupil(:, 1), 'blink');
-saccIRF = doublegamma_fit(x, deconvolvedPupil(:, 2), 'sacc');
+saccIRF  = doublegamma_fit(x, deconvolvedPupil(:, 2), 'sacc');
 
 % check if the fits look good
 if plotme,
@@ -167,11 +172,14 @@ reg2 = reg2(1:length(dat.pupil))';
 designM = [ones(size(reg1))' reg1' reg2'];
 
 % estimate glm weights
-[b, ~, resid] = regress(dat.bpfilt', designM);
+% [b, ~, resid] = regress(dat.bpfilt', designM);
+
+b = designM \ dat.bpfilt;
 prediction = designM * b;
+resid = dat.bpfilt - prediction;
 
 % use residuals
-dat.residualpupil = resid';
+dat.residualpupil = resid;
 
 if plotme,
     subplot(614); plot(dat.time,prediction);
