@@ -10,10 +10,9 @@ handles = findall(gcf,'Type','colorbar');
 for h = 1:length(handles),
     handles(h).TickDirection = 'out';
     handles(h).Box = 'off';
-    if exist('titleStr', 'var'),
-        handles(h).Label.String = titleStr;
-    end
-    handles(h).Ticks = [-max(abs(handles(h).Limits)) 0 max(abs(handles(h).Limits))];
+    lims = roundn(max(abs(handles(h).Limits)), -2);
+    handles(h).Ticks = [-lims 0 lims];
+    handles(h).Limits = [-lims lims];
 end
 drawnow;
 
@@ -26,6 +25,11 @@ for h = 1:length(handles),
     cpos = handles(h).Position;
     cpos(3) = thinning*cpos(3);
     handles(h).Position = cpos;
+    
+    if exist('titleStr', 'var'),
+        handles(h).Label.String = titleStr;
+        % handles(h).Label.Position(1) = handles(h).Label.Position(1) + 0.1;
+    end
 end
 drawnow;
 
