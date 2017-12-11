@@ -18,7 +18,7 @@ end
 
 pvals = [];
 pvalsgroup = [];
-if ~exist('critp', 'var'), critp = 0.01; end
+if ~exist('critp', 'var'), critp = 0.05; end
 
 % ============================================ %
 % CORRELATE ALL MEASURES WITH EACH OTHER
@@ -116,11 +116,12 @@ if ~exist('varnames2', 'var'),
                 end
                 % title(sprintf('\\rho = %.2f p = %.3f bf = %.3f', coef, pval, bf), 'fontweight', 'normal');
                 
-                text(nanmin(dat(i).mean), nanmin(dat(j).mean+yslack), sprintf('r = %.3f', coef), 'fontweight', 'normal', 'fontsize', 3);
+                fz = 5;
+                text(nanmin(dat(i).mean), nanmin(dat(j).mean+yslack), sprintf('r = %.3f', coef), 'fontweight', 'normal', 'fontsize', fz);
                 if pval < 0.0001,
-                    text(nanmin(dat(i).mean), nanmin(dat(j).mean), 'p < 0.0001', 'fontweight', 'normal', 'fontsize', 3);
+                    text(nanmin(dat(i).mean), nanmin(dat(j).mean), 'p < 0.0001', 'fontweight', 'normal', 'fontsize', fz);
                 else
-                    text(nanmin(dat(i).mean), nanmin(dat(j).mean), sprintf('p = %.4f', pval), 'fontweight', 'normal', 'fontsize', 3);
+                    text(nanmin(dat(i).mean), nanmin(dat(j).mean), sprintf('p = %.4f', pval), 'fontweight', 'normal', 'fontsize', fz);
                 end
                 
                 % hline(0, 'color', [0.5 0.5 0.5], 'linewidth', 0.5);
