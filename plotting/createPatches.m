@@ -1,4 +1,4 @@
-function [ptchs,ptchGrp] = createPatches(x,y,offset,c,FaceAlpha)
+function [ptchs,ptchGrp] = createPatches(x,y,offset,c,FaceAlpha, base)
 %createPatches.m
 % This file will create a bar plot with the option for changing the
 % FaceAlpha property. It is meant to be able to recreate the functionality
@@ -30,7 +30,7 @@ for k = 1:length(x)
     leftX = x(k) - offset; % Left Boundary of x
     rightX = x(k) + offset; % Right Boundary of x
     patch([leftX rightX rightX leftX],...
-        [0 0 y(k) y(k)], c,'FaceAlpha',FaceAlpha,'Parent',ptchGrp);
+        [base base y(k) y(k)], c,'FaceAlpha',FaceAlpha,'Parent',ptchGrp, 'edgecolor', 'none');
 end
 
 ptchs = ptchGrp.Children;

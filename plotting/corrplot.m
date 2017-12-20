@@ -19,6 +19,7 @@ end
 pvals = [];
 pvalsgroup = [];
 if ~exist('critp', 'var'), critp = 0.05; end
+colormap(linspecer);
 
 % ============================================ %
 % CORRELATE ALL MEASURES WITH EACH OTHER
@@ -52,16 +53,23 @@ if ~exist('varnames2', 'var'),
                 
                 if exist('groupvar', 'var'),
                     gr = findgroups(data.(groupvar));
+                    if length(unique(gr)) == length(data.(groupvar)),
+                        grH = ones(size(gr));
+                    else
+                        grH = gr;
+                    end
                     
-                    for g = 1:length(unique(gr)),
-                        h = histogram(dat(i).mean(gr == g), round(length(dat(i).mean(gr == g))));
+                    for g = 1:length(unique(grH)),
+                        h = histogram(dat(i).mean(grH == g), round(length(dat(i).mean(grH == g))));
                         set(h(1), 'edgecolor', 'none');
                     end
                     
                     % do stats between the groups!
-                    pvalsgroup = [pvalsgroup ranksum(dat(i).mean(gr == 1), dat(i).mean(gr == 2))];
-                    pvalsgroup = [pvalsgroup ranksum(dat(i).mean(gr == 2), dat(i).mean(gr == 3))];
-                    pvalsgroup = [pvalsgroup ranksum(dat(i).mean(gr == 1), dat(i).mean(gr == 3))];
+                    try
+                        pvalsgroup = [pvalsgroup ranksum(dat(i).mean(grH == 1), dat(i).mean(grH == 2))];
+                        pvalsgroup = [pvalsgroup ranksum(dat(i).mean(grH == 2), dat(i).mean(grH == 3))];
+                        pvalsgroup = [pvalsgroup ranksum(dat(i).mean(grH == 1), dat(i).mean(grH == 3))];
+                    end
                     
                 else
                     % for autocorrelation, plot histfit
@@ -227,9 +235,11 @@ else
                     end
                     
                     % do stats between the groups!
-                    pvalsgroup = [pvalsgroup ranksum(dat2(j).mean(gr == 1), dat2(j).mean(gr == 2))];
-                    pvalsgroup = [pvalsgroup ranksum(dat2(j).mean(gr == 2), dat2(j).mean(gr == 3))];
-                    pvalsgroup = [pvalsgroup ranksum(dat2(j).mean(gr == 1), dat2(j).mean(gr == 3))];
+                    try
+                        pvalsgroup = [pvalsgroup ranksum(dat2(j).mean(gr == 1), dat2(j).mean(gr == 2))];
+                        pvalsgroup = [pvalsgroup ranksum(dat2(j).mean(gr == 2), dat2(j).mean(gr == 3))];
+                        pvalsgroup = [pvalsgroup ranksum(dat2(j).mean(gr == 1), dat2(j).mean(gr == 3))];
+                    end
                     
                 else
                     % for autocorrelation, plot histfit
@@ -241,6 +251,7 @@ else
                 axisNotSoTight;
                 axis square;
                 offsetAxes;
+                hline(nanmean(dat2(j).mean), 'k');
                 set(gca, 'xticklabel', [], 'xcolor', 'w');
                 % vline(nanmean(dat(i).mean), 'color', 'k', 'linewidth', 1);
                 xlim([0 max(get(gca, 'xlim'))]);
@@ -248,10 +259,36 @@ else
                 prevhandle = subplot(nsubpl, nsubpl, -1 + i + (j-1)*nsubpl);
                 currhandle = subplot(nsubpl, nsubpl, i + (j-1)*nsubpl);
                 set(currhandle, 'ylim', get(prevhandle, 'ylim'), 'ytick', get(prevhandle, 'ytick'));
-               
+                
                 continue;
             elseif j > length(dat2)
-                histogram(dat1(i).mean); continue;
+                if exist('groupvar', 'var'),
+                    gr = findgroups(data.(groupvar));
+                    
+                    for g = 1:length(unique(gr)),
+                        h = histogram(dat1(i).mean(gr == g), round(length(dat1(i).mean(gr == g))));
+                        set(h(1), 'edgecolor', 'none');
+                    end
+                else
+                    % for autocorrelation, plot histfit
+                    h = histogram(dat1(i).mean, round(length(dat1(i).mean)/5));
+                    set(h(1), 'edgecolor', 'none', 'facecolor', linspecer(1));
+                end
+                
+                axisNotSoTight;
+                axis square;
+                offsetAxes;
+                vline(nanmean(dat1(i).mean), 'k');
+                set(gca, 'yticklabel', [], 'ycolor', 'w');
+                % vline(nanmean(dat(i).mean), 'color', 'k', 'linewidth', 1);
+                ylim([0 max(get(gca, 'ylim'))]);
+                %
+                %                 prevhandle = subplot(nsubpl, nsubpl, -1 + i + (j-1)*nsubpl);
+                %                 currhandle = subplot(nsubpl, nsubpl, i + (j-1)*nsubpl);
+                %                 set(currhandle, 'ylim', get(prevhandle, 'ylim'), 'ytick', get(prevhandle, 'ytick'));
+                %
+                
+                continue;
             end
             
             if exist('groupvar', 'var'),
@@ -291,6 +328,12 @@ else
             else
                 text(nanmin(dat1(i).mean), nanmin(dat2(j).mean), sprintf('p = %.4f', pval), 'fontweight', 'normal', 'fontsize', 5);
             end
+            
+            % show the group mean on top
+            ploterr(mean(dat1(i).mean), mean(dat2(j).mean), ...
+                std(dat1(i).mean) ./ sqrt(numel(dat1(i).mean)), ...
+                std(dat2(j).mean) ./ sqrt(numel(dat2(j).mean)), ...
+                'k.','abshhxy', 0);
             
             % if all(dat1(i).ci{1} == dat1(i).ci{2}),
             % r = refline(1); set(r, 'color', [0.5 0.5 0.5]);
