@@ -694,9 +694,9 @@ for iData = goodData'
     
     % only use a boundary for some types
     if floor(opt.histOpt) == 1,
-        colorOpt = [colorOpt {'EdgeColor', opt.color{iData}}];
+        colorOpt = [colorOpt {'EdgeColor', 'none'}];
     else
-        colorOpt = [colorOpt {'EdgeColor', opt.color{iData}}];
+        colorOpt = [colorOpt {'EdgeColor', 'none'}];
     end
     
     % this does the actual plotting
@@ -731,7 +731,7 @@ for iData = goodData'
             % md array is md/q1/q3, with third dimension y/xmin/xmax
             
             md(iData,2,1) = prctile(currentData,2.5);
-            md(iData,3,1) = prctile(currentData,97.5);
+            md(iData,3,1) = prctile(currentData,75);
             
             for qq = 1:3
                 % find corresponding y-bin
@@ -784,7 +784,7 @@ if opt.showMM
         case 'normal'
             if any(opt.showMM==[1,2])
                 % mean
-                mh = plot(ah,opt.xValues+xOffset,m,'o','markerfacecolor','w','MarkerSize', markersz, 'markeredgecolor', 'k');
+                mh = plot(ah,opt.xValues+xOffset,m,'o','markerfacecolor','w','MarkerSize',markersz, 'markeredgecolor', 'k');
             end
             if any(opt.showMM==[1,3])
                 % median
@@ -799,9 +799,9 @@ if opt.showMM
                 mh = plot(ah,opt.xValues+xOffset,m,'o','markerfacecolor','w','MarkerSize',markersz, 'markeredgecolor', 'k');
             end
             if opt.showMM == 6
-                mdh(1,:) = plot(ah,squeeze(md(:,1,2:3))',repmat(md(:,1,1)',2,1),'color','w','lineWidth',2);%,'lineStyle','--');
-                mdh(2,:) = plot(ah,squeeze(md(:,2,2:3))',repmat(md(:,2,1)',2,1),'color','w','lineWidth',1);%,'lineStyle','--');
-                mdh(3,:) = plot(ah,squeeze(md(:,3,2:3))',repmat(md(:,3,1)',2,1),'color','w','lineWidth',1);%,'lineStyle','--');
+                mdh(1,:) = plot(ah,squeeze(md(:,1,2:3))',repmat(md(:,1,1)',2,1),'color','k','lineWidth',2);%,'lineStyle','--');
+                mdh(2,:) = plot(ah,squeeze(md(:,2,2:3))',repmat(md(:,2,1)',2,1),'color','k','lineWidth',1);%,'lineStyle','--');
+                mdh(3,:) = plot(ah,squeeze(md(:,3,2:3))',repmat(md(:,3,1)',2,1),'color','k','lineWidth',1);%,'lineStyle','--');
             end
             if opt.showMM == 7 % boxplot
                 boxplot(ah, currentData, 'PlotStyle', 'compact', 'color', 'k', 'MedianStyle', 'target');
