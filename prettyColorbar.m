@@ -28,7 +28,7 @@ for h = 1:length(handles),
     
     if exist('titleStr', 'var'),
         handles(h).Label.String = titleStr;
-        % handles(h).Label.Position(1) = handles(h).Label.Position(1) + 0.1;
+      %  handles(h).Label.Position(1) = handles(h).Label.Position(1) - 0.3;
     end
 end
 drawnow;

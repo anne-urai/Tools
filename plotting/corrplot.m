@@ -52,9 +52,14 @@ if ~exist('varnames2', 'var'),
                 
                 if exist('groupvar', 'var'),
                     gr = findgroups(data.(groupvar));
+                    if length(unique(gr)) == length(data.(groupvar)),
+                        grH = ones(size(gr));
+                    else
+                        grH = gr;
+                    end
                     
-                    for g = 1:length(unique(gr)),
-                        h = histogram(dat(i).mean(gr == g), round(length(dat(i).mean(gr == g))));
+                    for g = 1:length(unique(grH)),
+                        h = histogram(dat(i).mean(grH == g), round(length(dat(i).mean(grH == g))));
                         set(h(1), 'edgecolor', 'none');
                     end
                     
