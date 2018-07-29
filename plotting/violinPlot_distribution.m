@@ -1,7 +1,16 @@
-function violinPlot_distribution(x, y, color)
+function violinPlot_distribution(x, y, color, shrinky)
 % inspired by violinPlot, plots a nice-looking patch
 
+if isempty(color), 
+	color = [0 0 0];
+end
+
+if ~exist('shrinky', 'var'),
+	shrinky = 10;
+end
+
 [xHist,yHist] = ksdensity(y);
+xHist = xHist / shrinky;
 
 % find the percentiles and make patch
 xPatch = xHist;
@@ -16,9 +25,9 @@ patch(xPatch+x, yPatch,  color, 'facecolor', color, 'edgecolor', 'none', 'faceal
 hold on;
 
 % outline mean
-plot([min(xHist+x) max(xHist+x)], [mean(y) mean(y)], 'w-', 'linewidth', 2);
+plot([min(xHist+x) max(xHist+x)], [mean(y) mean(y)], 'w-', 'linewidth', 1);
 
 % outline thicker, on top
-plot(xHist+x, yHist, '-', 'color', color, 'linewidth', 2);
+plot(xHist+x, yHist, '-', 'color', color, 'linewidth', 0.5);
 
 end

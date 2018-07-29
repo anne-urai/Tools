@@ -14,6 +14,7 @@ if nargin<2
 end
 skipset=lower(skipset);
 
+
 if iscell(S)
     S=cellfun(@(x) capitalize(x, skipset),S,'uniformoutput',false);
 else
