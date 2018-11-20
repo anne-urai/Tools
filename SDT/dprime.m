@@ -1,5 +1,12 @@
 function [dprime, crit] = dprime(stim, resp)
 
+% if there was only one stimulus class shown, this whole thing doesn't make
+% sense
+if length(unique(stim(~isnan(stim)))) == 1,
+    dprime = NaN; crit = NaN;
+    return;
+end
+    
 % use only 2 identities, however this is coded
 stim(stim~=1) = -1;
 resp(resp~=1) = -1;

@@ -32,6 +32,7 @@ end
 cfgstats                  = [];
 cfgstats.method           = 'montecarlo'; % permutation test
 cfgstats.statistic        = 'ft_statfun_depsamplesT'; % also for one-sample (but then just against zero
+cfgstats.spmversion       = 'spm12';
 
 % do cluster correction
 cfgstats.correctm         = 'cluster';
