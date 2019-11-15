@@ -312,8 +312,10 @@ else
             % test if there is a correlation
             [coef, pval] = corr(dat1(i).mean(:), dat2(j).mean(:), ...
                 'type', 'Pearson', 'rows', 'pairwise');
+            try
             bf = corrbf(coef, sum(~isnan(dat1(i).mean)));
             pvals = [pvals pval];
+            end
             
             % indicate significant correlation
             if pval < critp,
