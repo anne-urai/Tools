@@ -33,15 +33,16 @@ cfgstats                  = [];
 cfgstats.method           = 'montecarlo'; % permutation test
 cfgstats.statistic        = 'ft_statfun_depsamplesT'; % also for one-sample (but then just against zero
 cfgstats.spmversion       = 'spm12';
+cfgstats.alpha            = 0.05;
+cfgstats.tail             = 0; % two-tailed!
+cfgstats.correcttail      = 'prob';
 
 % do cluster correction
 cfgstats.correctm         = 'cluster';
 cfgstats.clusteralpha     = 0.05;
-cfgstats.tail             = 0; % two-tailed!
 cfgstats.clustertail      = 0; % two-tailed!
-cfgstats.alpha            = 0.025;
-cfgstats.numrandomization = 1000; % make sure this is large enough
-cfgstats.randomseed       = 1; % make the stats reproducible!
+cfgstats.numrandomization = 10000; % make sure this is large enough
+cfgstats.randomseed       = 123; % make the stats reproducible!
 
 % use only our preselected sensors for the time being
 cfgstats.channel          = 'channel';

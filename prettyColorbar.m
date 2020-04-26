@@ -10,6 +10,7 @@ handles = findall(gcf,'Type','colorbar');
 for h = 1:length(handles),
     handles(h).TickDirection = 'out';
     handles(h).Box = 'off';
+    % handles(h).LineWidth = 0;
     lims = roundn(max(abs(handles(h).Limits)), -2);
     handles(h).Ticks = [-lims 0 lims];
     handles(h).Limits = [-lims lims];
@@ -36,4 +37,6 @@ drawnow;
 % restore axis pos
 for h = 1:length(hAllAxes), set(hAllAxes(h), 'Position', axpos{h}); end
 drawnow;
+
+% move 
 end
